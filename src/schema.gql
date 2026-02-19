@@ -1,0 +1,28 @@
+# ------------------------------------------------------
+# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+# ------------------------------------------------------
+
+type Playlist {
+  description: String!
+  id: Int!
+  name: String!
+  videos: [Video!]!
+}
+
+type Query {
+  user(id: Int!): User!
+}
+
+type User {
+  email: String!
+  id: Int!
+  playlists: [Playlist!]!
+  username: String!
+}
+
+type Video {
+  description: String!
+  id: Int!
+  name: String!
+  url: String!
+}
