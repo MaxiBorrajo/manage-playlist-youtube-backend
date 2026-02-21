@@ -1,53 +1,28 @@
-import { Injectable } from "@nestjs/common";
+import { Injectable } from '@nestjs/common';
+import { Playlist } from './playlist.model';
+import { EntityRepository } from '@mikro-orm/core';
+import { InjectRepository } from '@mikro-orm/nestjs';
+import { PlaylistRepository } from './playlist.repository';
 
 @Injectable()
 export class PlaylistsService {
-    private playlists = [
-        {
-            id: 1,
-            name: 'Playlist 1',
-            description: 'Description of Playlist 1',
-            videos: [
-                {
-                    id: 1,
-                    name: 'Video 1',
-                    description: 'Description of Video 1',
-                    url: 'https://www.youtube.com/watch?v=video1'
-                },  
-                {
-                    id: 2,
-                    name: 'Video 2',
-                    description: 'Description of Video 2',
-                    url: 'https://www.youtube.com/watch?v=video2'
-                }
-            ]
-        },
-        {
-            id: 2,
-            name: 'Playlist 2',
-            description: 'Description of Playlist 2',
-            videos: [
-                {
-                    id: 3,
-                    name: 'Video 3',
-                    description: 'Description of Video 3',
-                    url: 'https://www.youtube.com/watch?v=video3'
-                },
-                {
-                    id: 4,
-                    name: 'Video 4',
-                    description: 'Description of Video 4',
-                    url: 'https://www.youtube.com/watch?v=video4'
-                }
-            ]
-        }
-    ];
+  constructor(private readonly playlistRepository: PlaylistRepository) {}
 
-    findAll({ userId }: { userId: number }) {
-        return this.playlists;
-    }
+  async create(playlist: Playlist) {
+    const newPlaylist = this.playlistRepository.create(playlist);
+    await this.playlistRepository.save(newPlaylist);
+    return newPlaylist;
+  }
 
-    findOneById(id: number) {
-        return this.playlists.find((playlist) => playlist.id === id);
-    }
+  async findByUserId({ userId }: { userId: number }) {
+    return await this.playlistRepository.findAll({
+      where: {
+        $or: [{ author: { id: userId } }, { savedBy: { id: userId } }],
+      },
+    });
+  }
+
+  async findOneById(id: number) {
+    return await this.playlistRepository.findOne({ id });
+  }
 }

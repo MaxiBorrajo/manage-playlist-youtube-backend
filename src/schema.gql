@@ -10,13 +10,14 @@ type Playlist {
 }
 
 type Query {
-  user(id: Int!): User!
+  user(userId: Int!): [Playlist!]!
 }
 
 type User {
+  createdPlaylists: [Playlist!]!
   email: String!
   id: Int!
-  playlists: [Playlist!]!
+  savedPlaylists: [Playlist!]!
   username: String!
 }
 
