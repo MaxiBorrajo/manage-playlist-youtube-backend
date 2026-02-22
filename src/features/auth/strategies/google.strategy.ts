@@ -5,29 +5,8 @@ import { Request } from 'express';
 import { Strategy, VerifyCallback } from 'passport-google-oauth20';
 import { User } from 'src/features/users/user.model';
 import { AuthService } from '../auth.service';
-import { ILogin } from '../auth.types';
+import { GoogleProfile, ILogin } from '../auth.types';
 
-interface GoogleProfile {
-  id: string;
-  displayName: string;
-  name: {
-    familyName: string;
-    givenName: string;
-  };
-  emails: { value: string; verified: boolean }[];
-  photos: { value: string }[];
-  provider: 'google';
-  _raw: string;
-  _json: {
-    sub: string;
-    name: string;
-    given_name: string;
-    family_name: string;
-    picture: string;
-    email: string;
-    email_verified: boolean;
-  };
-}
 
 @Injectable()
 export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
@@ -69,7 +48,7 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
       googleAccessToken: accessToken,
       googleRefreshToken: refreshToken,
     };
-    const user = await this.authService.handleLogin(login);
-    done(null, { user, accessToken, refreshToken });
+    const credentials = await this.authService.handleLogin(login);
+    done(null, credentials);
   }
 }

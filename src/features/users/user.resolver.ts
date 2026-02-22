@@ -10,22 +10,31 @@ import {
 import { User } from './user.model';
 import { UsersService } from './user.service';
 import { UpdateUserInput } from './dto/updateUser.input';
+import { UseGuards } from '@nestjs/common';
+import { GqlAuthGuard } from '../auth/guards/gqlAuth.guard';
+import { CurrentUser } from 'src/shared/decorators/currentUser.decorator';
 
+@UseGuards(GqlAuthGuard)
 @Resolver(() => User)
 export class UsersResolver {
   constructor(private usersService: UsersService) {}
 
   @Mutation(() => User)
   async updateUser(
-    @Args('id', { type: () => Int }) id: number,
+    @CurrentUser() user: User,
     @Args('updateUserInput') updateUserInput: UpdateUserInput,
   ) {
-    return await this.usersService.update(id, updateUserInput);
+    return await this.usersService.update(user.id, updateUserInput);
   }
 
   @Query(() => User)
   async user(@Args('id', { type: () => Int }) id: number) {
     return await this.usersService.findOneById(id);
+  }
+
+  @Query(() => User)
+  async me(@CurrentUser() user: User) {
+    return await this.usersService.findOneById(user.id);
   }
 
   @ResolveField()

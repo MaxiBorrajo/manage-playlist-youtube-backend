@@ -3,7 +3,6 @@
 # ------------------------------------------------------
 
 input CreatePlaylistInput {
-  authorId: Float!
   description: String
   name: String!
   videoIds: [Float!]
@@ -12,24 +11,27 @@ input CreatePlaylistInput {
 type Mutation {
   createPlaylist(createPlaylistInput: CreatePlaylistInput!): Playlist!
   updatePlaylist(id: Int!, updatePlaylistInput: UpdatePlaylistInput!): Playlist!
-  updateUser(id: Int!, updateUserInput: UpdateUserInput!): User!
+  updateUser(updateUserInput: UpdateUserInput!): User!
 }
 
 type Playlist {
   description: String
   id: Int!
+  isPublic: Boolean!
   name: String!
   videos: [Video!]!
 }
 
 type Query {
+  me: User!
   playlist(id: Int!): Playlist!
-  playlistsOfUser(userId: Int!): [Playlist!]!
+  playlistsOfUser: [Playlist!]!
   user(id: Int!): User!
 }
 
 input UpdatePlaylistInput {
   description: String
+  isPublic: Boolean
   name: String
 }
 

@@ -6,6 +6,7 @@ import {
   ManyToMany,
   ManyToOne,
   OneToMany,
+  Opt,
   PrimaryKey,
   Property,
 } from '@mikro-orm/core';
@@ -22,6 +23,10 @@ export class Playlist extends BaseModel {
   @Field()
   @Property()
   name: string;
+
+  @Field(() => Boolean)
+  @Property({default: true})
+  isPublic: boolean & Opt = true;
 
   @Field({ nullable: true })
   @Property({ nullable: true, columnType: 'text' })

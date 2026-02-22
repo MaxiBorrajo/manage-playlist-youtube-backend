@@ -25,9 +25,4 @@ export class CreatePlaylistInput {
   @IsInt({ each: true })
   @IsOptional()
   videoIds?: number[];
-
-  @Field()
-  @IsInt()
-  @IsNotEmpty()
-  authorId: number;
 }
