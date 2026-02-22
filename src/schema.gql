@@ -9,14 +9,8 @@ input CreatePlaylistInput {
   videoIds: [Float!]
 }
 
-input CreateUserInput {
-  email: String!
-  username: String!
-}
-
 type Mutation {
   createPlaylist(createPlaylistInput: CreatePlaylistInput!): Playlist!
-  createUser(createUserInput: CreateUserInput!): User!
   updatePlaylist(id: Int!, updatePlaylistInput: UpdatePlaylistInput!): Playlist!
   updateUser(id: Int!, updateUserInput: UpdateUserInput!): User!
 }
@@ -40,13 +34,19 @@ input UpdatePlaylistInput {
 }
 
 input UpdateUserInput {
+  email: String
+  picture: String
   username: String
 }
 
 type User {
   createdPlaylists: [Playlist!]!
   email: String!
+  googleAccessToken: String!
+  googleId: String!
+  googleRefreshToken: String!
   id: Int!
+  picture: String
   savedPlaylists: [Playlist!]!
   username: String!
 }

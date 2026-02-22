@@ -3,26 +3,33 @@ import { User } from './user.model';
 import { InjectRepository } from '@mikro-orm/nestjs';
 import { EntityRepository } from '@mikro-orm/core';
 import { UserRepository } from './user.repository';
-import { CreateUserInput } from './dto/createUser.input';
 import { UpdateUserInput } from './dto/updateUser.input';
+import { CreateUserDto } from './dto/createUser.dto';
 
 @Injectable()
 export class UsersService {
-  async update(id: number, updateUserInput: UpdateUserInput) {
+  
+  
+  constructor(private readonly userRepository: UserRepository) {}
+
+  async findOneByEmailAndGoogleId(googleId: string | undefined, email: string | undefined) {
+    return await this.userRepository.findOne({ googleId, email });
+  }
+
+  async update(id: number, updateUser: Partial<User>) {
     const user = await this.findOneById(id);
-    this.userRepository.assign(user, updateUserInput, { ignoreUndefined: true });
+    this.userRepository.assign(user, updateUser, {
+      ignoreUndefined: true,
+    });
     await this.userRepository.save(user);
     return user;
   }
-  
-  constructor(
-    private readonly userRepository: UserRepository
-  ) {}
 
-  async create(createUserInput: CreateUserInput) {
-    const user = this.userRepository.create(createUserInput);
-    await this.userRepository.save(user);
-    return user;
+
+  async create(user: CreateUserDto) {
+    const newUser = this.userRepository.create(user);
+    await this.userRepository.save(newUser);
+    return newUser;
   }
 
   async findOneById(id: number) {

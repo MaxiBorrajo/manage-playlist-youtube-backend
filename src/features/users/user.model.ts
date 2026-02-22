@@ -22,8 +22,24 @@ export class User extends BaseModel {
   username: string;
 
   @Field()
-  @Property()
+  @Property({ unique: true })
   email: string;
+
+  @Field({ nullable: true })
+  @Property({ nullable: true })
+  picture?: string;
+
+  @Field()
+  @Property({ unique: true })
+  googleId: string;
+
+  @Field()
+  @Property()
+  googleAccessToken: string;
+
+  @Field()
+  @Property()
+  googleRefreshToken: string;
 
   @Field((type) => [Playlist])
   @OneToMany(() => Playlist, (playlist) => playlist.author)

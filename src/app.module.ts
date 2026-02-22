@@ -8,6 +8,7 @@ import { ConfigModule } from '@nestjs/config';
 import { MikroOrmModule } from '@mikro-orm/nestjs';
 import mikroOrmConfig from './infrastructure/database/mikroOrm.config';
 import { APP_PIPE } from '@nestjs/core';
+import { AuthModule } from './features/auth/auth.module';
 
 @Module({
   imports: [
@@ -26,8 +27,8 @@ import { APP_PIPE } from '@nestjs/core';
     }),
     UserModule,
     PlaylistModule,
+    AuthModule,
   ],
-  controllers: [],
   providers: [
     {
       provide: APP_PIPE,
