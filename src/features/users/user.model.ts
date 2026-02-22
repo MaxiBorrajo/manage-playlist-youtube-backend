@@ -29,15 +29,12 @@ export class User extends BaseModel {
   @Property({ nullable: true })
   picture?: string;
 
-  @Field()
   @Property({ unique: true })
   googleId: string;
 
-  @Field()
   @Property()
   googleAccessToken: string;
 
-  @Field()
   @Property()
   googleRefreshToken: string;
 

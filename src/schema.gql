@@ -42,9 +42,6 @@ input UpdateUserInput {
 type User {
   createdPlaylists: [Playlist!]!
   email: String!
-  googleAccessToken: String!
-  googleId: String!
-  googleRefreshToken: String!
   id: Int!
   picture: String
   savedPlaylists: [Playlist!]!
