@@ -23,9 +23,9 @@ export class Playlist extends BaseModel {
   @Property()
   name: string;
 
-  @Field()
-  @Property()
-  description: string;
+  @Field({ nullable: true })
+  @Property({ nullable: true, columnType: 'text' })
+  description?: string;
 
   @Field((type) => [Video])
   @ManyToMany(() => Video, (video) => video.playlists, { owner: true })

@@ -21,9 +21,9 @@ export class Video extends BaseModel {
   @Property()
   name: string;
 
-  @Field()
-  @Property()
-  description: string;
+  @Field({nullable: true})
+  @Property({ nullable: true, columnType: 'text' })
+  description?: string;
 
   @Field()
   @Property()

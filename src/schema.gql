@@ -2,15 +2,45 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 # ------------------------------------------------------
 
+input CreatePlaylistInput {
+  authorId: Float!
+  description: String
+  name: String!
+  videoIds: [Float!]
+}
+
+input CreateUserInput {
+  email: String!
+  username: String!
+}
+
+type Mutation {
+  createPlaylist(createPlaylistInput: CreatePlaylistInput!): Playlist!
+  createUser(createUserInput: CreateUserInput!): User!
+  updatePlaylist(id: Int!, updatePlaylistInput: UpdatePlaylistInput!): Playlist!
+  updateUser(id: Int!, updateUserInput: UpdateUserInput!): User!
+}
+
 type Playlist {
-  description: String!
+  description: String
   id: Int!
   name: String!
   videos: [Video!]!
 }
 
 type Query {
-  user(userId: Int!): [Playlist!]!
+  playlist(id: Int!): Playlist!
+  playlistsOfUser(userId: Int!): [Playlist!]!
+  user(id: Int!): User!
+}
+
+input UpdatePlaylistInput {
+  description: String
+  name: String
+}
+
+input UpdateUserInput {
+  username: String
 }
 
 type User {
@@ -22,7 +52,7 @@ type User {
 }
 
 type Video {
-  description: String!
+  description: String
   id: Int!
   name: String!
   url: String!
