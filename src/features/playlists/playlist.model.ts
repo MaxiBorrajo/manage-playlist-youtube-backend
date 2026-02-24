@@ -24,8 +24,16 @@ export class Playlist extends BaseModel {
   @Property()
   name: string;
 
+  @Field({ nullable: true })
+  @Property({ nullable: true })
+  thumbnail?: string;
+
+  @Field({ nullable: true })
+  @Property({ nullable: true })
+  youtubePlaylistId?: string;
+
   @Field(() => Boolean)
-  @Property({default: true})
+  @Property({ default: true })
   isPublic: boolean & Opt = true;
 
   @Field({ nullable: true })
@@ -36,9 +44,12 @@ export class Playlist extends BaseModel {
   @ManyToMany(() => Video, (video) => video.playlists, { owner: true })
   videos = new Collection<Video>(this);
 
+  @Field((type) => User)
   @ManyToOne(() => User, { deleteRule: 'cascade' })
   author!: User;
 
-  @ManyToMany(() => User, (user) => user.savedPlaylists, { mappedBy: 'savedPlaylists' })
+  @ManyToMany(() => User, (user) => user.savedPlaylists, {
+    mappedBy: 'savedPlaylists',
+  })
   savedBy = new Collection<User>(this);
 }

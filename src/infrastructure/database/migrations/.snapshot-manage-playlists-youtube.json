@@ -177,6 +177,26 @@
           "length": 255,
           "mappedType": "string"
         },
+        "thumbnail": {
+          "name": "thumbnail",
+          "type": "varchar(255)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": true,
+          "length": 255,
+          "mappedType": "string"
+        },
+        "youtube_playlist_id": {
+          "name": "youtube_playlist_id",
+          "type": "varchar(255)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": true,
+          "length": 255,
+          "mappedType": "string"
+        },
         "is_public": {
           "name": "is_public",
           "type": "boolean",

@@ -34,8 +34,8 @@ export type JwtPayload = { sub: string }
 export type JwtUser = {
   id: number;
   googleId: string;
-  accessToken: string;
-  refreshToken: string;
+  googleAccessToken: string;
+  googleRefreshToken: string;
 }
 
 export interface UserLoginResponse {

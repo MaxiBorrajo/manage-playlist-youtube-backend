@@ -14,20 +14,26 @@ import { UpdatePlaylistInput } from './dto/updatePlaylist.input';
 import { GqlAuthGuard } from '../auth/guards/gqlAuth.guard';
 import { UseGuards } from '@nestjs/common';
 import { CurrentUser } from 'src/shared/decorators/currentUser.decorator';
-import { User } from '../users/user.model';
+import { YoutubeService } from 'src/infrastructure/youtube/youtube.service';
+import { JwtUser } from '../auth/auth.types';
 
 @UseGuards(GqlAuthGuard)
 @Resolver(() => Playlist)
 export class PlaylistsResolver {
-  constructor(private playlistsService: PlaylistsService) {}
+  constructor(
+    private playlistsService: PlaylistsService,
+  ) {}
 
   @Query(() => [Playlist])
-  async playlistsOfUser(@CurrentUser() user: User) {
+  async playlistsOfUser(@CurrentUser() user: JwtUser) {
     return await this.playlistsService.findByUserId({ userId: user.id });
   }
 
   @Query(() => Playlist)
-  async playlist(@CurrentUser() user: User, @Args('id', { type: () => Int }) id: number) {
+  async playlist(
+    @CurrentUser() user: JwtUser,
+    @Args('id', { type: () => Int }) id: number,
+  ) {
     return await this.playlistsService.findOneById(id, user.id);
   }
 
@@ -38,7 +44,7 @@ export class PlaylistsResolver {
 
   @Mutation(() => Playlist)
   async createPlaylist(
-    @CurrentUser() user: User,
+    @CurrentUser() user: JwtUser,
     @Args('createPlaylistInput') createPlaylistInput: CreatePlaylistInput,
   ) {
     return await this.playlistsService.create(createPlaylistInput, user.id);
@@ -46,7 +52,7 @@ export class PlaylistsResolver {
 
   @Mutation(() => Playlist)
   async updatePlaylist(
-    @CurrentUser() user: User,
+    @CurrentUser() user: JwtUser,
     @Args('id', { type: () => Int }) id: number,
     @Args('updatePlaylistInput') updatePlaylistInput: UpdatePlaylistInput,
   ) {

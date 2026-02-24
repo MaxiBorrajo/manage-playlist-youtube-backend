@@ -13,6 +13,7 @@ import { UpdateUserInput } from './dto/updateUser.input';
 import { UseGuards } from '@nestjs/common';
 import { GqlAuthGuard } from '../auth/guards/gqlAuth.guard';
 import { CurrentUser } from 'src/shared/decorators/currentUser.decorator';
+import { JwtUser } from '../auth/auth.types';
 
 @UseGuards(GqlAuthGuard)
 @Resolver(() => User)
@@ -21,7 +22,7 @@ export class UsersResolver {
 
   @Mutation(() => User)
   async updateUser(
-    @CurrentUser() user: User,
+    @CurrentUser() user: JwtUser,
     @Args('updateUserInput') updateUserInput: UpdateUserInput,
   ) {
     return await this.usersService.update(user.id, updateUserInput);
@@ -33,7 +34,7 @@ export class UsersResolver {
   }
 
   @Query(() => User)
-  async me(@CurrentUser() user: User) {
+  async me(@CurrentUser() user: JwtUser) {
     return await this.usersService.findOneById(user.id);
   }
 

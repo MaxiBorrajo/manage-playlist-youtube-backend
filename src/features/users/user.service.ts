@@ -1,18 +1,21 @@
 import { Injectable } from '@nestjs/common';
 import { User } from './user.model';
-import { InjectRepository } from '@mikro-orm/nestjs';
-import { EntityRepository } from '@mikro-orm/core';
 import { UserRepository } from './user.repository';
-import { UpdateUserInput } from './dto/updateUser.input';
 import { CreateUserDto } from './dto/createUser.dto';
+import { PlaylistsService } from '../playlists/playlist.service';
+import { Transactional } from '@mikro-orm/core';
 
 @Injectable()
 export class UsersService {
-  
-  
-  constructor(private readonly userRepository: UserRepository) {}
+  constructor(
+    private readonly userRepository: UserRepository,
+    private readonly playlistService: PlaylistsService,
+  ) {}
 
-  async findOneByEmailAndGoogleId(googleId: string | undefined, email: string | undefined) {
+  async findOneByEmailAndGoogleId(
+    googleId: string | undefined,
+    email: string | undefined,
+  ) {
     return await this.userRepository.findOne({ googleId, email });
   }
 
@@ -25,10 +28,11 @@ export class UsersService {
     return user;
   }
 
-
+  @Transactional()
   async create(user: CreateUserDto) {
     const newUser = this.userRepository.create(user);
     await this.userRepository.save(newUser);
+    await this.playlistService.syncFromYoutube(newUser.id);
     return newUser;
   }
 

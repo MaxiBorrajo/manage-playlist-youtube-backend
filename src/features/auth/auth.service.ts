@@ -17,8 +17,8 @@ export class AuthService {
 
     return {
       id: user.id,
-      accessToken: user.googleAccessToken,
-      refreshToken: user.googleRefreshToken,
+      googleAccessToken: user.googleAccessToken,
+      googleRefreshToken: user.googleRefreshToken,
       googleId: user.googleId,
     };
   }

@@ -7,7 +7,6 @@ import { User } from 'src/features/users/user.model';
 import { AuthService } from '../auth.service';
 import { GoogleProfile, ILogin } from '../auth.types';
 
-
 @Injectable()
 export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
   constructor(
@@ -18,10 +17,9 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
       clientID: configService.get<string>('GOOGLE_CLIENT_ID')!,
       clientSecret: configService.get<string>('GOOGLE_CLIENT_SECRET')!,
       callbackURL: `${configService.get<string>('APPLICATION_URL')}/auth/google/redirect`,
-      scope: ['profile', 'email'],
+      scope: ['profile', 'email', 'https://www.googleapis.com/auth/youtube'],
       state: false,
       passReqToCallback: true,
-      
     });
   }
 

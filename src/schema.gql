@@ -15,11 +15,14 @@ type Mutation {
 }
 
 type Playlist {
+  author: User!
   description: String
   id: Int!
   isPublic: Boolean!
   name: String!
+  thumbnail: String
   videos: [Video!]!
+  youtubePlaylistId: String
 }
 
 type Query {
