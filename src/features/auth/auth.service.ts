@@ -16,18 +16,14 @@ export class AuthService {
     const user = await this.usersService.findOneById(Number(userId));
 
     return {
-      id: user.id,
-      googleAccessToken: user.googleAccessToken,
-      googleRefreshToken: user.googleRefreshToken,
-      googleId: user.googleId,
+      id: user.id
     };
   }
 
   async handleLogin(
     user: ILogin,
   ): Promise<{ accessToken: string; user: UserLoginResponse }> {
-    const userFound = await this.usersService.findOneByEmailAndGoogleId(
-      user.googleId,
+    const userFound = await this.usersService.findOneByEmail(
       user.email,
     );
 

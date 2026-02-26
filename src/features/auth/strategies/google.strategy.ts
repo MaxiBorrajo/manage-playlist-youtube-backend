@@ -17,7 +17,7 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
       clientID: configService.get<string>('GOOGLE_CLIENT_ID')!,
       clientSecret: configService.get<string>('GOOGLE_CLIENT_SECRET')!,
       callbackURL: `${configService.get<string>('APPLICATION_URL')}/auth/google/redirect`,
-      scope: ['profile', 'email', 'https://www.googleapis.com/auth/youtube'],
+      scope: ['profile', 'email'],
       state: false,
       passReqToCallback: true,
     });
@@ -39,12 +39,9 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
   ) {
     const { _json } = profile;
     const login: ILogin = {
-      googleId: _json.sub,
       username: _json.name,
       email: _json.email,
       picture: _json.picture,
-      googleAccessToken: accessToken,
-      googleRefreshToken: refreshToken,
     };
     const credentials = await this.authService.handleLogin(login);
     done(null, credentials);

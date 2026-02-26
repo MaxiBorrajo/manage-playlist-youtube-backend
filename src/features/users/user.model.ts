@@ -29,15 +29,6 @@ export class User extends BaseModel {
   @Property({ nullable: true })
   picture?: string;
 
-  @Property({ unique: true })
-  googleId: string;
-
-  @Property()
-  googleAccessToken: string;
-
-  @Property()
-  googleRefreshToken: string;
-
   @Field((type) => [Playlist])
   @OneToMany(() => Playlist, (playlist) => playlist.author)
   createdPlaylists = new Collection<Playlist>(this);

@@ -13,16 +13,4 @@ export class CreateUserDto {
   @IsString()
   @IsOptional()
   picture?: string;
-
-  @IsString()
-  @IsNotEmpty()
-  googleId: string;
-
-  @IsString()
-  @IsNotEmpty()
-  googleAccessToken: string;
-
-  @IsString()
-  @IsNotEmpty()
-  googleRefreshToken: string;
 }

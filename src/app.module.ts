@@ -9,7 +9,6 @@ import { MikroOrmModule } from '@mikro-orm/nestjs';
 import mikroOrmConfig from './infrastructure/database/mikroOrm.config';
 import { APP_PIPE } from '@nestjs/core';
 import { AuthModule } from './features/auth/auth.module';
-import { YoutubeModule } from './infrastructure/youtube/youtube.module';
 
 @Module({
   imports: [
@@ -26,7 +25,6 @@ import { YoutubeModule } from './infrastructure/youtube/youtube.module';
       autoSchemaFile: join(process.cwd(), 'src/schema.gql'),
       sortSchema: true,
     }),
-    YoutubeModule,
     PlaylistModule,
     AuthModule,
     UserModule,

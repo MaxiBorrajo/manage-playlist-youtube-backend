@@ -1,10 +1,7 @@
 export interface ILogin {
-  googleId: string;
   username: string;
   email: string;
   picture: string;
-  googleAccessToken: string;
-  googleRefreshToken: string;
 }
 
 export interface GoogleProfile {
@@ -33,9 +30,6 @@ export type JwtPayload = { sub: string }
 
 export type JwtUser = {
   id: number;
-  googleId: string;
-  googleAccessToken: string;
-  googleRefreshToken: string;
 }
 
 export interface UserLoginResponse {

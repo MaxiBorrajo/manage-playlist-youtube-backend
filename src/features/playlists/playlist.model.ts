@@ -28,10 +28,6 @@ export class Playlist extends BaseModel {
   @Property({ nullable: true })
   thumbnail?: string;
 
-  @Field({ nullable: true })
-  @Property({ nullable: true })
-  youtubePlaylistId?: string;
-
   @Field(() => Boolean)
   @Property({ default: true })
   isPublic: boolean & Opt = true;

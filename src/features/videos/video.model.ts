@@ -19,7 +19,7 @@ export class Video extends BaseModel {
 
   @Field()
   @Property()
-  name: string;
+  title: string;
 
   @Field({nullable: true})
   @Property({ nullable: true, columnType: 'text' })
@@ -28,6 +28,26 @@ export class Video extends BaseModel {
   @Field()
   @Property()
   url: string;
+
+  @Field()
+  @Property()
+  thumbnail: string;
+
+  @Field()
+  @Property()
+  duration: string;
+
+  @Field()
+  @Property()
+  source: string;
+
+  @Field()
+  @Property()
+  channel: string;
+
+  @Field()
+  @Property()
+  date: string;
 
   @ManyToMany(() => Playlist, (playlist) => playlist.videos, { mappedBy: 'videos' })
   playlists = new Collection<Playlist>(this);

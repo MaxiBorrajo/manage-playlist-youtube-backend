@@ -22,7 +22,6 @@ type Playlist {
   name: String!
   thumbnail: String
   videos: [Video!]!
-  youtubePlaylistId: String
 }
 
 type Query {
@@ -54,8 +53,13 @@ type User {
 }
 
 type Video {
+  channel: String!
+  date: String!
   description: String
+  duration: String!
   id: Int!
-  name: String!
+  source: String!
+  thumbnail: String!
+  title: String!
   url: String!
 }

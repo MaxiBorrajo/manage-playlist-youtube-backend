@@ -14,7 +14,6 @@ import { UpdatePlaylistInput } from './dto/updatePlaylist.input';
 import { GqlAuthGuard } from '../auth/guards/gqlAuth.guard';
 import { UseGuards } from '@nestjs/common';
 import { CurrentUser } from 'src/shared/decorators/currentUser.decorator';
-import { YoutubeService } from 'src/infrastructure/youtube/youtube.service';
 import { JwtUser } from '../auth/auth.types';
 
 @UseGuards(GqlAuthGuard)

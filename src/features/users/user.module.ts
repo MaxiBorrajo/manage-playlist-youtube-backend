@@ -3,10 +3,9 @@ import { UsersService } from './user.service';
 import { UsersResolver } from './user.resolver';
 import { PlaylistModule } from '../playlists/playlist.module';
 import { UserRepository } from './user.repository';
-import { YoutubeModule } from 'src/infrastructure/youtube/youtube.module';
 
 @Module({
-  imports: [forwardRef(() => PlaylistModule), YoutubeModule],
+  imports: [],
   controllers: [],
   providers: [UsersService, UsersResolver, UserRepository],
   exports: [UsersService],
