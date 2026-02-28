@@ -1,6 +1,5 @@
-import { Controller, Get, Redirect, Req, UseGuards } from '@nestjs/common';
+import { Controller, Get, Req, UseGuards } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { GqlAuthGuard } from './guards/gqlAuth.guard';
 import { AuthGuard } from '@nestjs/passport';
 
 @Controller('auth')

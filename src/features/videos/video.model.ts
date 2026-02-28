@@ -27,7 +27,7 @@ export class Video extends BaseModel {
 
   @Field()
   @Property()
-  url: string;
+  urls: string;
 
   @Field()
   @Property()

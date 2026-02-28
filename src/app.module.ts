@@ -27,7 +27,7 @@ import { AuthModule } from './features/auth/auth.module';
     }),
     PlaylistModule,
     AuthModule,
-    UserModule,
+    UserModule, 
   ],
   providers: [
     {
