@@ -1,9 +1,9 @@
 # Etapa 1: build
-FROM node:20-slim AS builder
+FROM node:20-alpine AS builder
 WORKDIR /usr/src/app
-COPY package*.json ./
+COPY package*.json yarn.lock ./
 # instala TODO (dev + prod)
-RUN yarn install          
+RUN yarn install --frozen-lockfile && yarn cache clean          
 COPY . .
 # compila TS → dist/
 RUN yarn build            
