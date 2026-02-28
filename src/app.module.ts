@@ -9,6 +9,7 @@ import { MikroOrmModule } from '@mikro-orm/nestjs';
 import mikroOrmConfig from './infrastructure/database/mikroOrm.config';
 import { APP_PIPE } from '@nestjs/core';
 import { AuthModule } from './features/auth/auth.module';
+import { AppController } from './app.controller';
 
 @Module({
   imports: [
@@ -39,5 +40,6 @@ import { AuthModule } from './features/auth/auth.module';
       }),
     },
   ],
+  controllers: [AppController],
 })
 export class AppModule {}

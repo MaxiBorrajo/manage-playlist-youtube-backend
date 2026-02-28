@@ -1,22 +1,19 @@
-# Use the official Node.js image as the base image
-FROM node:20
-
-# Set the working directory inside the container
+# Etapa 1: build
+FROM node:20-slim AS builder
 WORKDIR /usr/src/app
-
-# Copy package.json and package-lock.json to the working directory
 COPY package*.json ./
-
-# Install the application dependencies
-RUN yarn install
-
-# Copy the rest of the application files
+# instala TODO (dev + prod)
+RUN yarn install          
 COPY . .
+# compila TS → dist/
+RUN yarn build            
 
-# Build
-RUN yarn build
-
-# Build the NestJS application
-CMD yarn migration:up && yarn start:prod
-
-
+# Etapa 2: producción
+FROM node:20-slim AS production
+WORKDIR /usr/src/app
+COPY package*.json ./
+# solo dependencias de producción
+RUN yarn install --production   
+# copia solo el dist compilado
+COPY --from=builder /usr/src/app/dist ./dist   
+CMD yarn migration:up --config=/usr/src/app/dist/infrastructure/database/mikroOrm.config.js && yarn start:prod
