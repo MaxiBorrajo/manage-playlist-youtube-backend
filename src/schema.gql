@@ -61,5 +61,5 @@ type Video {
   source: String!
   thumbnail: String!
   title: String!
-  url: String!
+  urls: String!
 }
