@@ -29,11 +29,6 @@ export class UsersResolver {
   }
 
   @Query(() => User)
-  async user(@Args('id', { type: () => Int }) id: number) {
-    return await this.usersService.findOneById(id);
-  }
-
-  @Query(() => User)
   async me(@CurrentUser() user: JwtUser) {
     return await this.usersService.findOneById(user.id);
   }
@@ -41,10 +36,5 @@ export class UsersResolver {
   @ResolveField()
   async createdPlaylists(@Parent() user: User) {
     return user.createdPlaylists.load({ dataloader: true });
-  }
-
-  @ResolveField()
-  async savedPlaylists(@Parent() user: User) {
-    return user.savedPlaylists.load({ dataloader: true });
   }
 }

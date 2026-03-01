@@ -9,8 +9,6 @@ import {
 } from '@nestjs/graphql';
 import { Playlist } from './playlist.model';
 import { PlaylistsService } from './playlist.service';
-import { CreatePlaylistInput } from './dto/createPlaylist.input';
-import { UpdatePlaylistInput } from './dto/updatePlaylist.input';
 import { GqlAuthGuard } from '../auth/guards/gqlAuth.guard';
 import { UseGuards } from '@nestjs/common';
 import { CurrentUser } from 'src/shared/decorators/currentUser.decorator';
@@ -39,22 +37,5 @@ export class PlaylistsResolver {
   @ResolveField()
   async videos(@Parent() playlist: Playlist) {
     return playlist.videos.load({ dataloader: true });
-  }
-
-  @Mutation(() => Playlist)
-  async createPlaylist(
-    @CurrentUser() user: JwtUser,
-    @Args('createPlaylistInput') createPlaylistInput: CreatePlaylistInput,
-  ) {
-    return await this.playlistsService.create(createPlaylistInput, user.id);
-  }
-
-  @Mutation(() => Playlist)
-  async updatePlaylist(
-    @CurrentUser() user: JwtUser,
-    @Args('id', { type: () => Int }) id: number,
-    @Args('updatePlaylistInput') updatePlaylistInput: UpdatePlaylistInput,
-  ) {
-    return await this.playlistsService.update(id, updatePlaylistInput, user.id);
   }
 }

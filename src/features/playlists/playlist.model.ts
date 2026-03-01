@@ -28,10 +28,6 @@ export class Playlist extends BaseModel {
   @Property({ nullable: true })
   thumbnail?: string;
 
-  @Field(() => Boolean)
-  @Property({ default: true })
-  isPublic: boolean & Opt = true;
-
   @Field({ nullable: true })
   @Property({ nullable: true, columnType: 'text' })
   description?: string;
@@ -43,9 +39,4 @@ export class Playlist extends BaseModel {
   @Field((type) => User)
   @ManyToOne(() => User, { deleteRule: 'cascade' })
   author!: User;
-
-  @ManyToMany(() => User, (user) => user.savedPlaylists, {
-    mappedBy: 'savedPlaylists',
-  })
-  savedBy = new Collection<User>(this);
 }

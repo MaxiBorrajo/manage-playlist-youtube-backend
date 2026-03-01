@@ -10,6 +10,7 @@ import mikroOrmConfig from './infrastructure/database/mikroOrm.config';
 import { APP_PIPE } from '@nestjs/core';
 import { AuthModule } from './features/auth/auth.module';
 import { AppController } from './app.controller';
+import { ChatModule } from './features/chat/chat.module';
 
 @Module({
   imports: [
@@ -28,7 +29,8 @@ import { AppController } from './app.controller';
     }),
     PlaylistModule,
     AuthModule,
-    UserModule, 
+    UserModule,
+    ChatModule, 
   ],
   providers: [
     {

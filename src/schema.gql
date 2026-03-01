@@ -2,15 +2,34 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 # ------------------------------------------------------
 
-input CreatePlaylistInput {
-  description: String
+type Chat {
+  id: Int!
+  messages: [Message!]!
   name: String!
-  videoIds: [Float!]
+  user: User!
+}
+
+enum ChatRole {
+  ASSISTANT
+  SYSTEM
+  USER
+}
+
+input CreateChatInput {
+  prompt: String!
+}
+
+type Message {
+  chat: Chat!
+  content: String!
+  id: Int!
+  role: ChatRole!
 }
 
 type Mutation {
-  createPlaylist(createPlaylistInput: CreatePlaylistInput!): Playlist!
-  updatePlaylist(id: Int!, updatePlaylistInput: UpdatePlaylistInput!): Playlist!
+  createChat(createChatInput: CreateChatInput!): [Chat!]!
+  removeChat(id: Int!): Chat!
+  updateChat(id: Int!, updateChatInput: UpdateChatInput!): Chat!
   updateUser(updateUserInput: UpdateUserInput!): User!
 }
 
@@ -18,22 +37,20 @@ type Playlist {
   author: User!
   description: String
   id: Int!
-  isPublic: Boolean!
   name: String!
   thumbnail: String
   videos: [Video!]!
 }
 
 type Query {
+  chat(id: Int!): Chat!
+  chats: [Chat!]!
   me: User!
   playlist(id: Int!): Playlist!
   playlistsOfUser: [Playlist!]!
-  user(id: Int!): User!
 }
 
-input UpdatePlaylistInput {
-  description: String
-  isPublic: Boolean
+input UpdateChatInput {
   name: String
 }
 
@@ -44,11 +61,11 @@ input UpdateUserInput {
 }
 
 type User {
+  createdChats: [Chat!]!
   createdPlaylists: [Playlist!]!
   email: String!
   id: Int!
   picture: String
-  savedPlaylists: [Playlist!]!
   username: String!
 }
 
@@ -61,5 +78,5 @@ type Video {
   source: String!
   thumbnail: String!
   title: String!
-  urls: String!
+  url: String!
 }
