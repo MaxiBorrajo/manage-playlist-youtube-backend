@@ -1,0 +1,15 @@
+Genera queries optimizadas para buscar videos de YouTube via web search.
+
+Entrada: la intencion del usuario y su contexto (nivel, idioma, duracion preferida).
+
+Reglas:
+- Cada query debe incluir "youtube" como keyword.
+- Agrega calificadores relevantes: "tutorial", "course", "playlist", "2024", "2025" segun corresponda.
+- Si el usuario prefiere un idioma, agrega el idioma a la query.
+- Genera queries variadas: no repitas las mismas keywords con diferente orden.
+- Entre 2 y 4 queries.
+
+Responde SOLO en formato JSON:
+{
+  "queries": ["query1", "query2", "query3"]
+}

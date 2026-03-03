@@ -1,0 +1,22 @@
+Analiza la siguiente playlist del usuario y sugeri videos complementarios.
+
+CONTEXTO DE LA PLAYLIST:
+{titulo, descripcion, tags, lista de videos actuales con titulo/canal/duracion}
+
+HISTORIAL DEL USUARIO:
+{temas frecuentes, videos descartados previamente, preferencias de idioma/duracion}
+
+Tu tarea:
+1. Identifica gaps o temas que la playlist no cubre pero deberia.
+2. Genera entre 2 y 4 queries de busqueda para encontrar videos que complementen lo existente.
+3. Para cada query, explica en una oracion que gap cubre.
+
+Responde SOLO en formato JSON:
+{
+  "analysis": "resumen breve de lo que le falta a la playlist",
+  "queries": [
+    { "query": "...", "reason": "..." }
+  ]
+}
+
+No sugierias contenido redundante con lo que ya esta en la playlist. Prioriza calidad sobre cantidad.
