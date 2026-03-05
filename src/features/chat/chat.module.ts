@@ -4,15 +4,15 @@ import { ChatResolver } from './chat.resolver';
 import { Chat } from './models/chat.model';
 import { ChatRepository } from './repositories/chat.repository';
 import { MessageRepository } from './repositories/message.repository';
-import { ClaudeService } from 'src/infrastructure/AI/claude.service';
+import { AiModule } from 'src/infrastructure/ai/ai.module';
 
 @Module({
+  imports: [AiModule],
   providers: [
     ChatResolver,
     ChatService,
     ChatRepository,
     MessageRepository,
-    ClaudeService,
   ],
 })
 export class ChatModule {}

@@ -3,7 +3,7 @@ import { CreateChatInput } from './dto/create-chat.input';
 import { UpdateChatInput } from './dto/update-chat.input';
 import { ChatRepository } from './repositories/chat.repository';
 import { MessageRepository } from './repositories/message.repository';
-import { ClaudeService } from 'src/infrastructure/AI/claude.service';
+import { ClaudeService } from 'src/infrastructure/ai/claude.service';
 import { ChatRole } from './chat.types';
 
 @Injectable()
@@ -15,7 +15,14 @@ export class ChatService {
   ) {}
 
   async create(createChatInput: CreateChatInput, userId: number) {
-    this.claudeService.generateResponse(createChatInput.prompt)
+    const response = await this.claudeService.generateResponse(
+      {
+        role: 'user',
+        content: createChatInput.prompt,
+      },
+      [],
+    );
+    console.log(response)
     // const chat = this.chatRepository.create({ name: 'Untitled', user: userId });
     // const [response] = await Promise.all([
     // //   this.claudeService.generateResponse(createChatInput.prompt),

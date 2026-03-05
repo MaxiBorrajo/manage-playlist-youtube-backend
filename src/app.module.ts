@@ -11,6 +11,8 @@ import { APP_PIPE } from '@nestjs/core';
 import { AuthModule } from './features/auth/auth.module';
 import { AppController } from './app.controller';
 import { ChatModule } from './features/chat/chat.module';
+import { ScrapersModule } from './infrastructure/scrapers/scrapers.module';
+import { AiModule } from './infrastructure/ai/ai.module';
 
 @Module({
   imports: [
@@ -30,7 +32,9 @@ import { ChatModule } from './features/chat/chat.module';
     PlaylistModule,
     AuthModule,
     UserModule,
-    ChatModule, 
+    ChatModule,
+    ScrapersModule,
+    AiModule, 
   ],
   providers: [
     {

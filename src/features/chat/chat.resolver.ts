@@ -14,11 +14,11 @@ export class ChatResolver {
   constructor(private readonly chatService: ChatService) {}
 
   @Mutation(() => [Chat])
-  createChat(
+  async createChat(
     @CurrentUser() user: JwtUser,
     @Args('createChatInput') createChatInput: CreateChatInput,
   ) {
-    this.chatService.create(createChatInput, user.id);
+    await this.chatService.create(createChatInput, user.id);
     return []
   }
 

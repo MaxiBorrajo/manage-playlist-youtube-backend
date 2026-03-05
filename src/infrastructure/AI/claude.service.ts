@@ -1,16 +1,23 @@
 import { Injectable } from '@nestjs/common';
 import Anthropic from '@anthropic-ai/sdk';
 import { ConfigService } from '@nestjs/config';
-import { MaxTokensExceededException } from './exceptions/maxTokensExceeded.exception';
+import { serperDevTool } from '../scrapers/serper.dev/serperDev.constants';
+import { zodOutputFormat } from '@anthropic-ai/sdk/helpers/zod';
+import {  ToolResultBlockParam } from '@anthropic-ai/sdk/resources';
+import { PlaylistResponseSchema } from './claude.types';
 import { AnthropicRefusalException } from './exceptions/anthropicRefusal.exception';
+import { MaxTokensExceededException } from './exceptions/maxTokensExceeded.exception';
+import { ToolsExecutionService } from './toolsExecution.service';
 
 @Injectable()
 export class ClaudeService {
-  anthropic = new Anthropic({
+  anthropic: Anthropic = new Anthropic({
     apiKey: this.configService.get('CLAUDE_API_KEY'),
   });
 
-  constructor(private readonly configService: ConfigService) {}
+  tools: Anthropic.Tool[] = [serperDevTool];
+
+  constructor(private readonly configService: ConfigService, private readonly toolsExecutionService: ToolsExecutionService) {}
 
   async generateResponse(
     newMessage: Anthropic.Messages.MessageParam,
@@ -23,12 +30,14 @@ export class ClaudeService {
         Sos un curador experto de contenido de YouTube dentro de la app PlaylistAI. Tu objetivo es ayudar al usuario a armar una playlist personalizada de videos de YouTube basada en lo que quiere aprender o ver.
 
         FLUJO DE TRABAJO:
-        1. Cuando el usuario describe lo que busca, hacele preguntas de refinamiento ANTES de buscar. Necesitas saber:
+        1. Analiza el mensaje del usuario y evalua si ya proporciono contexto suficiente para buscar:
           - Nivel actual en el tema (principiante/intermedio/avanzado)
           - Tiempo disponible (videos cortos <15min, medianos, o cursos largos)
           - Idioma preferido
-          - Alguna preferencia especifica (canal favorito, enfoque teorico vs practico)
-          Pregunta solo lo que no sea obvio del mensaje. No hagas todas las preguntas juntas si el contexto ya responde algunas.
+          - Enfoque (teorico vs practico)
+
+          Si el usuario ya especifico al menos 2 de estos parametros, NO hagas preguntas. Inferi lo que falte con sentido comun y procede directamente a buscar videos llamando a "search_videos".
+          Si el usuario da un mensaje muy vago sin ningun parametro (ej: "quiero aprender algo de programacion"), ahi si hace 1-2 preguntas puntuales. Nunca mas de 2 preguntas.
 
         2. Cuando tengas suficiente contexto, genera queries de busqueda optimizadas llamando la funcion "search_videos". Genera entre 2 y 4 queries distintas que cubran diferentes angulos del tema.
 
@@ -47,9 +56,13 @@ export class ClaudeService {
         - Si el usuario pide algo que no es contenido de YouTube (ej: que le expliques un tema), podes dar una respuesta breve pero redirigilo a armar una playlist sobre eso.
         - Maximo 15 videos por playlist a menos que el usuario pida mas.
         - Responde siempre en el idioma que use el usuario.
+        - Cuando necesites buscar videos, lanza todas las queries en paralelo en una sola respuesta, no de forma secuencial una por una.
+        - IMPORTANTE: Si el usuario explicitamente dice que no le hagas preguntas o que busques directamente, obedece siempre. La preferencia del usuario tiene prioridad sobre el flujo por defecto.
       `,
-      max_tokens: 1000,
+      max_tokens: 2500,
       messages: [...messages, newMessage],
+      tools: this.tools,
+      output_config: { format: zodOutputFormat(PlaylistResponseSchema) },
     });
 
     return this.handleResponse(msg, messages);
@@ -122,10 +135,12 @@ export class ClaudeService {
     );
   }
 
-  executeTools(
+  async executeTools(
     content: Anthropic.Messages.ContentBlock[],
-  ): string | Anthropic.Messages.ContentBlockParam[] {
-    throw new Error('Method not implemented.');
+  ): Promise<string | Anthropic.Messages.ContentBlockParam[]> {
+    const toolsResults: ToolResultBlockParam[] = await this.toolsExecutionService.execute(content);
+
+    return toolsResults
   }
 
   handleRefusal(
@@ -164,7 +179,9 @@ export class ClaudeService {
     );
   }
 
-  handleMaxTokens(msg: Anthropic.Messages.Message & { _request_id?: string | null }) {
+  handleMaxTokens(
+    msg: Anthropic.Messages.Message & { _request_id?: string | null },
+  ) {
     throw new MaxTokensExceededException(msg.usage.output_tokens);
   }
 
