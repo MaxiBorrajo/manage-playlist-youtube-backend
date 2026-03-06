@@ -4,10 +4,10 @@ import {
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
-import { Playlist } from './playlist.model';
+import { Playlist } from './models/playlist.model';
 import { Loaded } from '@mikro-orm/core';
 import { PlaylistRepository } from './playlist.repository';
-import { UsersService } from '../users/user.service';
+import { UsersService } from '../user/user.service';
 
 @Injectable()
 export class PlaylistsService {

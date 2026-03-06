@@ -9,8 +9,8 @@ import {
   Property,
 } from '@mikro-orm/core';
 import { BaseModel } from 'src/shared/database/base.model';
-import { Message } from './message.model';
-import { User } from 'src/features/users/user.model';
+import { User } from 'src/features/user/user.model';
+import { Message } from '../message/message.model';
 
 @ObjectType()
 @Entity()
@@ -27,7 +27,7 @@ export class Chat extends BaseModel {
   @OneToMany(() => Message, (message) => message.chat)
   messages = new Collection<Message>(this);
 
-    @Field((type) => User)
-    @ManyToOne(() => User, { deleteRule: 'cascade' })
-    user!: User;
+  @Field((type) => User)
+  @ManyToOne(() => User, { deleteRule: 'cascade' })
+  user!: User;
 }

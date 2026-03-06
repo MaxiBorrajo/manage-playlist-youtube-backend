@@ -3,7 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
 import { Request } from 'express';
 import { Strategy, VerifyCallback } from 'passport-google-oauth20';
-import { User } from 'src/features/users/user.model';
+import { User } from 'src/features/user/user.model';
 import { AuthService } from '../auth.service';
 import { GoogleProfile, ILogin } from '../auth.types';
 

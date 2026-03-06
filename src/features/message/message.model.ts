@@ -10,8 +10,8 @@ import {
   Property,
 } from '@mikro-orm/core';
 import { BaseModel } from 'src/shared/database/base.model';
-import { Chat } from './chat.model';
-import { ChatRole } from '../chat.types';
+import { ChatRole } from '../chat/chat.types';
+import { Chat } from '../chat/chat.model';
 
 @ObjectType()
 @Entity()
@@ -21,10 +21,10 @@ export class Message extends BaseModel {
   id: number;
 
   @Field()
-  @Property()
+  @Property({ columnType: 'text' })
   content: string;
 
-  @Field(type => ChatRole)
+  @Field((type) => ChatRole)
   @Enum({ items: () => ChatRole, fieldName: 'role' })
   role: ChatRole;
 

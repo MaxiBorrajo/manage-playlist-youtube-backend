@@ -22,7 +22,7 @@ export class ClaudeService {
   async generateResponse(
     newMessage: Anthropic.Messages.MessageParam,
     messages: Anthropic.Messages.MessageParam[],
-  ) {
+  ): Promise<string | Anthropic.Messages.ContentBlockParam[]> {
     //Ver de siempre poder añadir mas contexto a la conversación, y no solo el ultimo mensaje del usuario
     const msg = await this.anthropic.messages.create({
       model: 'claude-haiku-4-5-20251001',
@@ -76,7 +76,7 @@ export class ClaudeService {
   async handleResponse(
     msg: Anthropic.Messages.Message & { _request_id?: string | null },
     messages: Anthropic.Messages.MessageParam[],
-  ) {
+  ): Promise<string | Anthropic.Messages.ContentBlockParam[]> {
     if (msg.stop_reason === 'tool_use') {
       return this.handleToolUse(msg, messages);
     }
@@ -117,6 +117,10 @@ export class ClaudeService {
       );
     }
 
+    return this.handleMessageContent(msg);
+  }
+
+  private handleMessageContent(msg: Anthropic.Messages.Message & { _request_id?: string | null; }) {
     const textBlock = msg.content.find(block => block.type === 'text');
     return textBlock ? JSON.parse(textBlock.text) : msg.content;
   }
@@ -151,14 +155,14 @@ export class ClaudeService {
 
   handleRefusal(
     msg: Anthropic.Messages.Message & { _request_id?: string | null },
-  ) {
+  ): never {
     throw new AnthropicRefusalException(msg);
   }
 
   async handlePause(
     messages: Anthropic.Messages.MessageParam[],
     maxRetries = 5,
-  ) {
+  ): Promise<string | Anthropic.Messages.ContentBlockParam[]> {
     const msg = await this.anthropic.messages.create({
       model: 'claude-haiku-4-5-20251001',
       max_tokens: 1000,
@@ -170,7 +174,7 @@ export class ClaudeService {
     }
 
     if (maxRetries <= 0) {
-      return msg.content[0];
+      return this.handleMessageContent(msg);
     }
 
     return await this.handlePause(
@@ -187,7 +191,7 @@ export class ClaudeService {
 
   handleMaxTokens(
     msg: Anthropic.Messages.Message & { _request_id?: string | null },
-  ) {
+  ): Promise<never> {
     throw new MaxTokensExceededException(msg.usage.output_tokens);
   }
 

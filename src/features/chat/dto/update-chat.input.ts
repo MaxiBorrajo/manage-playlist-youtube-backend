@@ -1,5 +1,4 @@
 import { IsOptional, IsString } from 'class-validator';
-import { CreateChatInput } from './create-chat.input';
 import { InputType, Field, Int, PartialType } from '@nestjs/graphql';
 
 @InputType()

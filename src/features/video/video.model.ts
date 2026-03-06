@@ -3,12 +3,14 @@ import {
   Entity,
   ManyToMany,
   ManyToOne,
+  OneToMany,
   PrimaryKey,
   Property,
 } from '@mikro-orm/core';
 import { Field, Int, ObjectType } from '@nestjs/graphql';
-import { Playlist } from '../playlists/playlist.model';
+import { Playlist } from '../playlist/models/playlist.model';
 import { BaseModel } from 'src/shared/database/base.model';
+import { PlaylistItem } from '../playlist/models/playlistItem.model';
 
 @ObjectType()
 @Entity()
@@ -21,7 +23,7 @@ export class Video extends BaseModel {
   @Property()
   title: string;
 
-  @Field({nullable: true})
+  @Field({ nullable: true })
   @Property({ nullable: true, columnType: 'text' })
   description?: string;
 
@@ -49,6 +51,7 @@ export class Video extends BaseModel {
   @Property()
   date: string;
 
-  @ManyToMany(() => Playlist, (playlist) => playlist.videos, { mappedBy: 'videos' })
-  playlists = new Collection<Playlist>(this);
+  @Field((type) => [PlaylistItem])
+  @OneToMany(() => PlaylistItem, (item) => item.video)
+  items = new Collection<PlaylistItem>(this);
 }

@@ -1,11 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { EntityManager } from '@mikro-orm/postgresql';
 import { BaseRepository } from 'src/shared/database/base.repository';
-import { Message } from '../models/message.model';
+import { Chat } from './chat.model';
 
 @Injectable()
-export class MessageRepository extends BaseRepository<Message> {
+export class ChatRepository extends BaseRepository<Chat> {
   constructor(em: EntityManager) {
-    super(em, Message);
+    super(em, Chat);
   }
 }

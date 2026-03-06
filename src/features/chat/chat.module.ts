@@ -1,18 +1,13 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { ChatService } from './chat.service';
 import { ChatResolver } from './chat.resolver';
-import { Chat } from './models/chat.model';
-import { ChatRepository } from './repositories/chat.repository';
-import { MessageRepository } from './repositories/message.repository';
+import { ChatRepository } from './chat.repository';
 import { AiModule } from 'src/infrastructure/ai/ai.module';
+import { MessageModule } from '../message/message.module';
 
 @Module({
-  imports: [AiModule],
-  providers: [
-    ChatResolver,
-    ChatService,
-    ChatRepository,
-    MessageRepository,
-  ],
+  imports: [AiModule, forwardRef(() => MessageModule)],
+  providers: [ChatResolver, ChatService, ChatRepository],
+  exports: [ChatService, ChatRepository],
 })
 export class ChatModule {}

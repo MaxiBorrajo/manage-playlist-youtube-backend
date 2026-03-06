@@ -1,10 +1,11 @@
 import { Injectable } from '@nestjs/common';
-import { CreateChatInput } from './dto/create-chat.input';
 import { UpdateChatInput } from './dto/update-chat.input';
-import { ChatRepository } from './repositories/chat.repository';
-import { MessageRepository } from './repositories/message.repository';
+import { ChatRepository } from './chat.repository';
 import { ClaudeService } from 'src/infrastructure/ai/claude.service';
+import { MessageRepository } from '../message/message.repository';
 import { ChatRole } from './chat.types';
+import { string } from 'zod';
+import { Transactional } from '@mikro-orm/core';
 
 @Injectable()
 export class ChatService {
@@ -14,41 +15,22 @@ export class ChatService {
     private readonly claudeService: ClaudeService,
   ) {}
 
-  async create(createChatInput: CreateChatInput, userId: number) {
-    const response = await this.claudeService.generateResponse(
-      {
-        role: 'user',
-        content: createChatInput.prompt,
-      },
-      [],
-    );
-    console.log(response)
-    // const chat = this.chatRepository.create({ name: 'Untitled', user: userId });
-    // const [response] = await Promise.all([
-    // //   this.claudeService.generateResponse(createChatInput.prompt),
-    //   this.chatRepository.save(chat),
-    // ]);
+  @Transactional()
+  async create(prompt:string, userId: number) {
+    const chat = this.chatRepository.create({
+      name: prompt.substring(0, 50),
+      user: userId,
+    });
 
-    // await this.messageRepository.save(
-    //   [this.messageRepository.create({
-    //     content: createChatInput.prompt,
-    //     role: ChatRole.USER,
-    //     chat,
-    //   }),
-    //   this.messageRepository.create({
-    //     content: response,
-    //     role: ChatRole.ASSISTANT,
-    //     chat,
-    //   })],
-    // );
+    return chat;
   }
 
   findAll(userId: number) {
     return `This action returns all chat for user ${userId}`;
   }
 
-  findOne(id: number, userId: number) {
-    return `This action returns a #${id} chat for user ${userId}`;
+  async findOne(id: number, userId: number) {
+    return this.chatRepository.findOneOrFail({ id, user: userId });
   }
 
   update(id: number, updateChatInput: UpdateChatInput, userId: number) {

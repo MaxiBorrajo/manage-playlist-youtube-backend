@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
-import { UsersService } from '../users/user.service';
+import { UsersService } from '../user/user.service';
 import { ILogin, JwtUser, UserLoginResponse } from './auth.types';
 import { JwtService } from '@nestjs/jwt';
-import { User } from '../users/user.model';
+import { User } from '../user/user.model';
 import { Loaded } from '@mikro-orm/core';
 
 @Injectable()
@@ -16,16 +16,14 @@ export class AuthService {
     const user = await this.usersService.findOneById(Number(userId));
 
     return {
-      id: user.id
+      id: user.id,
     };
   }
 
   async handleLogin(
     user: ILogin,
   ): Promise<{ accessToken: string; user: UserLoginResponse }> {
-    const userFound = await this.usersService.findOneByEmail(
-      user.email,
-    );
+    const userFound = await this.usersService.findOneByEmail(user.email);
 
     if (userFound) {
       await this.usersService.update(userFound.id, user);

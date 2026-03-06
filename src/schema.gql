@@ -3,9 +3,11 @@
 # ------------------------------------------------------
 
 type Chat {
+  createdAt: DateTime!
   id: Int!
   messages: [Message!]!
   name: String!
+  updatedAt: DateTime
   user: User!
 }
 
@@ -15,39 +17,67 @@ enum ChatRole {
   USER
 }
 
-input CreateChatInput {
-  prompt: String!
-}
+"""
+A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
+"""
+scalar DateTime
 
 type Message {
   chat: Chat!
   content: String!
+  createdAt: DateTime!
   id: Int!
   role: ChatRole!
+  updatedAt: DateTime
 }
 
 type Mutation {
-  createChat(createChatInput: CreateChatInput!): [Chat!]!
   removeChat(id: Int!): Chat!
+  sendMessage(sendMessageInput: SendMessageInput!): Message!
   updateChat(id: Int!, updateChatInput: UpdateChatInput!): Chat!
   updateUser(updateUserInput: UpdateUserInput!): User!
 }
 
 type Playlist {
   author: User!
+  createdAt: DateTime!
   description: String
   id: Int!
+  items: [PlaylistItem!]!
   name: String!
   thumbnail: String
-  videos: [Video!]!
+  updatedAt: DateTime
+}
+
+type PlaylistItem {
+  createdAt: DateTime!
+  notes: String!
+  playlist: Playlist!
+  position: Int!
+  updatedAt: DateTime
+  video: Video!
 }
 
 type Query {
   chat(id: Int!): Chat!
   chats: [Chat!]!
+  getMessagesOfChat(chatId: Float!): [Message!]!
   me: User!
   playlist(id: Int!): Playlist!
   playlistsOfUser: [Playlist!]!
+}
+
+input SendMessageInput {
+  chatId: Float
+  prompt: String!
+}
+
+type Tag {
+  author: User!
+  createdAt: DateTime!
+  id: Int!
+  name: String!
+  updatedAt: DateTime
 }
 
 input UpdateChatInput {
@@ -61,22 +91,28 @@ input UpdateUserInput {
 }
 
 type User {
+  createdAt: DateTime!
   createdChats: [Chat!]!
   createdPlaylists: [Playlist!]!
+  createdTags: [Tag!]!
   email: String!
   id: Int!
   picture: String
+  updatedAt: DateTime
   username: String!
 }
 
 type Video {
   channel: String!
+  createdAt: DateTime!
   date: String!
   description: String
   duration: String!
   id: Int!
+  items: [PlaylistItem!]!
   source: String!
   thumbnail: String!
   title: String!
+  updatedAt: DateTime
   url: String!
 }

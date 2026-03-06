@@ -1,5 +1,5 @@
 import { Field, Int, ObjectType } from '@nestjs/graphql';
-import { Video } from '../videos/video.model';
+import { Video } from '../../video/video.model';
 import {
   Collection,
   Entity,
@@ -10,8 +10,9 @@ import {
   PrimaryKey,
   Property,
 } from '@mikro-orm/core';
-import { User } from '../users/user.model';
+import { User } from '../../user/user.model';
 import { BaseModel } from 'src/shared/database/base.model';
+import { PlaylistItem } from './playlistItem.model';
 
 @ObjectType()
 @Entity()
@@ -32,9 +33,9 @@ export class Playlist extends BaseModel {
   @Property({ nullable: true, columnType: 'text' })
   description?: string;
 
-  @Field((type) => [Video])
-  @ManyToMany(() => Video, (video) => video.playlists, { owner: true })
-  videos = new Collection<Video>(this);
+  @Field((type) => [PlaylistItem])
+  @OneToMany(() => PlaylistItem, (item) => item.playlist)
+  items = new Collection<PlaylistItem>(this);
 
   @Field((type) => User)
   @ManyToOne(() => User, { deleteRule: 'cascade' })

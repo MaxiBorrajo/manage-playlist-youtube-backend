@@ -1,9 +1,11 @@
 import { Entity, Opt, Property } from '@mikro-orm/core';
-import { ObjectType } from '@nestjs/graphql';
+import { Field, ObjectType } from '@nestjs/graphql';
 
 @ObjectType()
 @Entity({ abstract: true })
 export abstract class BaseModel {
+
+    @Field(() => Date)
   @Property({
     type: 'datetime',
     columnType: 'timestamp(6)',
@@ -12,6 +14,7 @@ export abstract class BaseModel {
   })
   createdAt?: Date;
 
+  @Field(() => Date, { nullable: true })
   @Property({
     columnType: 'timestamp(6)',
     nullable: true,

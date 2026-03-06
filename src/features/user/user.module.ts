@@ -1,7 +1,7 @@
 import { forwardRef, Module } from '@nestjs/common';
 import { UsersService } from './user.service';
 import { UsersResolver } from './user.resolver';
-import { PlaylistModule } from '../playlists/playlist.module';
+import { PlaylistModule } from '../playlist/playlist.module';
 import { UserRepository } from './user.repository';
 
 @Module({

@@ -1,26 +1,16 @@
 import { Resolver, Query, Mutation, Args, Int } from '@nestjs/graphql';
 import { ChatService } from './chat.service';
-import { CreateChatInput } from './dto/create-chat.input';
 import { UpdateChatInput } from './dto/update-chat.input';
-import { Chat } from './models/chat.model';
 import { JwtUser } from '../auth/auth.types';
 import { CurrentUser } from 'src/shared/decorators/currentUser.decorator';
 import { GqlAuthGuard } from '../auth/guards/gqlAuth.guard';
 import { UseGuards } from '@nestjs/common';
+import { Chat } from './chat.model';
 
 @UseGuards(GqlAuthGuard)
 @Resolver(() => Chat)
 export class ChatResolver {
   constructor(private readonly chatService: ChatService) {}
-
-  @Mutation(() => [Chat])
-  async createChat(
-    @CurrentUser() user: JwtUser,
-    @Args('createChatInput') createChatInput: CreateChatInput,
-  ) {
-    await this.chatService.create(createChatInput, user.id);
-    return []
-  }
 
   @Query(() => [Chat])
   chats(@CurrentUser() user: JwtUser) {

@@ -1,5 +1,5 @@
 import { Field, Int, ObjectType } from '@nestjs/graphql';
-import { Playlist } from '../playlists/playlist.model';
+import { Playlist } from '../playlist/models/playlist.model';
 import {
   Collection,
   Entity,
@@ -9,7 +9,8 @@ import {
   Property,
 } from '@mikro-orm/core';
 import { BaseModel } from 'src/shared/database/base.model';
-import { Chat } from '../chat/models/chat.model';
+import { Tag } from '../tag/tag.model';
+import { Chat } from '../chat/chat.model';
 
 @ObjectType()
 @Entity()
@@ -33,6 +34,10 @@ export class User extends BaseModel {
   @Field((type) => [Playlist])
   @OneToMany(() => Playlist, (playlist) => playlist.author)
   createdPlaylists = new Collection<Playlist>(this);
+
+    @Field((type) => [Tag])
+  @OneToMany(() => Tag, (tag) => tag.author)
+  createdTags = new Collection<Tag>(this);
 
   @Field((type) => [Chat])
   @OneToMany(() => Chat, (chat) => chat.user)

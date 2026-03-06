@@ -7,7 +7,7 @@ import {
   ResolveField,
   Resolver,
 } from '@nestjs/graphql';
-import { Playlist } from './playlist.model';
+import { Playlist } from './models/playlist.model';
 import { PlaylistsService } from './playlist.service';
 import { GqlAuthGuard } from '../auth/guards/gqlAuth.guard';
 import { UseGuards } from '@nestjs/common';
@@ -17,9 +17,7 @@ import { JwtUser } from '../auth/auth.types';
 @UseGuards(GqlAuthGuard)
 @Resolver(() => Playlist)
 export class PlaylistsResolver {
-  constructor(
-    private playlistsService: PlaylistsService,
-  ) {}
+  constructor(private playlistsService: PlaylistsService) {}
 
   @Query(() => [Playlist])
   async playlistsOfUser(@CurrentUser() user: JwtUser) {
@@ -35,7 +33,7 @@ export class PlaylistsResolver {
   }
 
   @ResolveField()
-  async videos(@Parent() playlist: Playlist) {
-    return playlist.videos.load({ dataloader: true });
+  async items(@Parent() playlist: Playlist) {
+    return playlist.items.load({ dataloader: true });
   }
 }

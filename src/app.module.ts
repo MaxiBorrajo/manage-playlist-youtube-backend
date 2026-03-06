@@ -2,8 +2,8 @@ import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 import { Module, ValidationPipe } from '@nestjs/common';
 import { GraphQLModule } from '@nestjs/graphql';
 import { join } from 'path';
-import { UserModule } from './features/users/user.module';
-import { PlaylistModule } from './features/playlists/playlist.module';
+import { UserModule } from './features/user/user.module';
+import { PlaylistModule } from './features/playlist/playlist.module';
 import { ConfigModule } from '@nestjs/config';
 import { MikroOrmModule } from '@mikro-orm/nestjs';
 import mikroOrmConfig from './infrastructure/database/mikroOrm.config';
@@ -13,6 +13,7 @@ import { AppController } from './app.controller';
 import { ChatModule } from './features/chat/chat.module';
 import { ScrapersModule } from './infrastructure/scrapers/scrapers.module';
 import { AiModule } from './infrastructure/ai/ai.module';
+import { MessageModule } from './features/message/message.module';
 
 @Module({
   imports: [
@@ -34,7 +35,8 @@ import { AiModule } from './infrastructure/ai/ai.module';
     UserModule,
     ChatModule,
     ScrapersModule,
-    AiModule, 
+    AiModule,
+    MessageModule
   ],
   providers: [
     {
