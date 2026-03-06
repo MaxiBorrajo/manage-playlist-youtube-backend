@@ -58,6 +58,11 @@ export class ClaudeService {
         - Responde siempre en el idioma que use el usuario.
         - Cuando necesites buscar videos, lanza todas las queries en paralelo en una sola respuesta, no de forma secuencial una por una.
         - IMPORTANTE: Si el usuario explicitamente dice que no le hagas preguntas o que busques directamente, obedece siempre. La preferencia del usuario tiene prioridad sobre el flujo por defecto.
+
+        FORMATO DE RESPUESTA:
+        - El campo "message" debe contener SOLO un mensaje conversacional breve para el usuario (saludo, explicacion general, pregunta). NO incluyas listas de videos en el campo "message".
+        - TODOS los videos recomendados DEBEN ir en el array "videos", cada uno con videoId, title, channel, duration y reason. Nunca dejes el array "videos" vacio si estas recomendando videos.
+        - Si mencionas un video en tu respuesta, DEBE estar en el array "videos". No describas videos solo en el texto del mensaje.
       `,
       max_tokens: 2500,
       messages: [...messages, newMessage],
@@ -112,7 +117,8 @@ export class ClaudeService {
       );
     }
 
-    return msg.content;
+    const textBlock = msg.content.find(block => block.type === 'text');
+    return textBlock ? JSON.parse(textBlock.text) : msg.content;
   }
 
   async handleToolUse(
