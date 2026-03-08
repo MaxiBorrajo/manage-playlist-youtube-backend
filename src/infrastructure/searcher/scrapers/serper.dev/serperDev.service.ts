@@ -1,35 +1,20 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import axios from 'axios';
-import {
-  SerperDevCountryCode,
-  SerperDevDateRangeCode,
-  SerperDevLanguageCode,
-} from './serperDev.constants';
-import { Scraper, ScraperTool } from '../scrapers.types';
-import Anthropic from '@anthropic-ai/sdk';
 import { SerperDevVideoSearchResponse } from './serperDev.types';
 import { ToolResultBlockParam } from '@anthropic-ai/sdk/resources';
+import { SearchQueryParams } from '../../searcher.types';
 
 @Injectable()
-export class SerperDevService extends ScraperTool implements Scraper {
+export class SerperDevService{
   constructor(private readonly configService: ConfigService) {
-    super('search_videos_serperdev');
   }
 
   async executeTool(
-    block: Anthropic.Messages.ToolUseBlock,
+    params: SearchQueryParams
   ): Promise<ToolResultBlockParam> {
-    const { query, country, language, autocorrect, dateRange, page } =
-      block.input as {
-        query: string;
-        country?: SerperDevCountryCode;
-        language?: SerperDevLanguageCode;
-        autocorrect?: boolean;
-        dateRange?: SerperDevDateRangeCode;
-        page?: number;
-      };
-
+    const { query, country, language, autocorrect, dateRange, page } = params;
+    
     const config = {
       method: 'post',
       maxBodyLength: Infinity,

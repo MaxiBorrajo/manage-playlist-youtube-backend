@@ -1,15 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { UpdateChatInput } from './dto/update-chat.input';
 import { ChatRepository } from './chat.repository';
-import { ClaudeService } from 'src/infrastructure/ai/claude.service';
 import { MessageRepository } from '../message/message.repository';
-import { ChatRole } from './chat.types';
-import { string } from 'zod';
 import { Transactional } from '@mikro-orm/core';
+import { ClaudeService } from 'src/infrastructure/ai/claude.service';
 
 @Injectable()
 export class ChatService {
-  constructor(
+  constructor( 
     private readonly chatRepository: ChatRepository,
     private readonly messageRepository: MessageRepository,
     private readonly claudeService: ClaudeService,

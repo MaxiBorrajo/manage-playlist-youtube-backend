@@ -1,21 +1,12 @@
 import Anthropic from '@anthropic-ai/sdk';
-import {
-  ContentBlock,
-  ToolReferenceBlockParam,
-  ToolResultBlockParam,
-  ToolSearchToolResultBlockParam,
-} from '@anthropic-ai/sdk/resources';
+import { ToolResultBlockParam } from '@anthropic-ai/sdk/resources';
 import { Injectable } from '@nestjs/common';
-import { SerperDevService } from '../scrapers/serper.dev/serperDev.service';
-import { UnknownType } from '@mikro-orm/core';
-import { Scraper } from '../scrapers/scrapers.types';
+import { Tool } from './claude.types';
 
 @Injectable()
 export class ToolsExecutionService {
-  tools: Scraper[] = [];
-  constructor(private readonly serperDevService: SerperDevService) {
-    this.tools.push(serperDevService);
-  }
+  tools: Tool[] = [];
+  constructor() {}
 
   async execute(
     content: Anthropic.Messages.ContentBlock[],

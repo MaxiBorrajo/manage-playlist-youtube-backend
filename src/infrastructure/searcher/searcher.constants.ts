@@ -1,6 +1,50 @@
 import Anthropic from '@anthropic-ai/sdk';
 
-export const serperDevCountryCodes = [
+export const searcherTool: Anthropic.Tool = {
+  name: 'search_videos',
+  strict: true,
+  description:
+    'Searches for YouTube videos and returns a ranked list of results. Use this tool whenever the user wants to discover, explore, or curate YouTube videos on any topic — for example, to build a playlist, find tutorials, or compare content from different channels. Do NOT use this tool for general web searches or non-video content; it is exclusively for video discovery. Call this tool multiple times in parallel with different queries to cover different angles of a topic (e.g. "docker tutorial beginner", "docker crash course 2024", "docker for developers") — never issue queries sequentially. Each result includes the video title, YouTube URL, channel name, duration, and a snippet.',
+  input_schema: {
+    type: 'object',
+    properties: {
+      query: {
+        type: 'string',
+        description:
+          'The search query optimized for video discovery (e.g. "docker tutorial for beginners 2024", "python async await explained"). Be specific about the topic, level, and format to get more relevant results.',
+      },
+      country: {
+        type: 'string',
+        description:
+          'ISO 3166-1 alpha-2 country code (lowercase) that localizes search results to a specific region (e.g. "us", "ar", "gb"). Affects which videos are surfaced based on regional popularity and availability. Use the country that matches the user\'s preferred region or the region most likely to have relevant content in the desired language. Omit to use the default global results.',
+      },
+      language: {
+        type: 'string',
+        description:
+          'ISO 639-1 language code (lowercase) to filter results by language (e.g. "en", "es", "pt"). Set this based on the user\'s language preference. Omit to receive results in any language.',
+      },
+      autocorrect: {
+        type: 'boolean',
+        description:
+          'Whether to autocorrect spelling in the query before searching. Set to true (default) for natural language queries where typos are possible. Set to false when the query contains technical terms, proper nouns, or acronyms that should not be altered (e.g. "NestJS", "CUDA", "GPT-4o").',
+      },
+      dateRange: {
+        type: 'string',
+        description:
+          'Restricts results to videos published within a specific time window. Accepted values: "qdr:h" (past hour), "qdr:d" (past 24 hours), "qdr:w" (past week), "qdr:m" (past month), "qdr:y" (past year). Omit to search across all time. Use when the user asks for recent or up-to-date content.',
+      },
+      page: {
+        type: 'number',
+        description:
+          'Page number for paginated results, starting at 1. Each page returns up to 10 videos. Use page 2 or higher only when the first page results are insufficient or the user explicitly asks for more options. Defaults to page 1 if omitted.',
+      },
+    },
+    required: ['query'],
+    additionalProperties: false,
+  },
+};
+
+export const CountryCodes = [
   { code: 'af', name: 'Afghanistan' },
   { code: 'al', name: 'Albania' },
   { code: 'dz', name: 'Algeria' },
@@ -243,10 +287,10 @@ export const serperDevCountryCodes = [
   { code: 'zw', name: 'Zimbabwe' },
 ] as const;
 
-export type SerperDevCountryCode =
-  (typeof serperDevCountryCodes)[number]['code'];
+export type CountryCode =
+  (typeof CountryCodes)[number]['code'];
 
-export const serperDevLanguageCodes = [
+export const LanguageCodes = [
   { code: 'ab', name: 'Abkhazian' },
   { code: 'aa', name: 'Afar' },
   { code: 'af', name: 'Afrikaans' },
@@ -436,10 +480,10 @@ export const serperDevLanguageCodes = [
   { code: 'zu', name: 'Zulu' },
 ];
 
-export type SerperDevLanguageCode =
-  (typeof serperDevLanguageCodes)[number]['code'];
+export type LanguageCode =
+  (typeof LanguageCodes)[number]['code'];
 
-export const serperDevDateRanges = [
+export const DateRanges = [
   { code: 'qdr:h', name: 'Past hour' },
   { code: 'qdr:d', name: 'Past 24 hours' },
   { code: 'qdr:w', name: 'Past week' },
@@ -448,60 +492,8 @@ export const serperDevDateRanges = [
   { code: null, name: 'Any Time' },
 ];
 
-export type SerperDevDateRangeCode =
-  | (typeof serperDevDateRanges)[number]['code']
+export type DateRangeCode =
+  | (typeof DateRanges)[number]['code']
   | null;
 
-export const serperDevTool: Anthropic.Tool = {
-  name: 'search_videos_serperdev',
-  strict: true,
-  description:
-    'Searches for YouTube videos using the Serper.dev Google Videos API and returns a ranked list of up to 10 video results per page. Use this tool whenever the user wants to discover, explore, or curate YouTube videos on any topic — for example, to build a playlist, find tutorials, or compare content from different channels. Do NOT use this tool for general web searches or non-video content; it is exclusively for video discovery. Call this tool multiple times in parallel with different queries to cover different angles of a topic (e.g. "docker tutorial beginner", "docker crash course 2024", "docker for developers") — never issue queries sequentially. Each result includes the video title, YouTube URL, channel name, duration, and a snippet; it does NOT return view counts, subscriber counts, likes, transcripts, or video quality metrics. The returned URLs may include non-YouTube sources (Instagram, Yahoo Finance, etc.) — filter for youtube.com links when building playlists.',
-  input_schema: {
-    type: 'object',
-    properties: {
-      query: {
-        type: 'string',
-        description:
-          'The search query string sent to Google Videos. Write it as a natural search query optimized for video discovery (e.g. "docker tutorial for beginners 2024", "python async await explained"). Avoid overly generic queries — be specific about the topic, level, and format to get more relevant results.',
-      },
-      country: {
-        type: 'string',
-        description:
-          'ISO 3166-1 alpha-2 country code (lowercase) that localizes search results to a specific region (e.g. "us", "ar", "gb"). Affects which videos are surfaced based on regional popularity and availability. Use the country that matches the user\'s preferred region or the region most likely to have relevant content in the desired language. Omit to use the default global results.',
-      },
-      language: {
-        type: 'string',
-        description:
-          'ISO 639-1 language code (lowercase) that filters results to videos in a specific language (e.g. "en" for English, "es" for Spanish, "pt" for Portuguese). Set this based on the user\'s language preference. Omit to receive results in any language.',
-      },
-      autocorrect: {
-        type: 'boolean',
-        description:
-          'Whether to allow Serper.dev to autocorrect spelling in the query before searching. Set to true (default) for natural language queries where typos are possible. Set to false when the query contains technical terms, proper nouns, or acronyms that should not be altered (e.g. "NestJS", "CUDA", "GPT-4o").',
-      },
-      dateRange: {
-        type: 'string',
-        description:
-          'Restricts results to videos published within a specific time window. Accepted values: "qdr:h" (past hour), "qdr:d" (past 24 hours), "qdr:w" (past week), "qdr:m" (past month), "qdr:y" (past year). Omit this parameter to search across all time. Use date filters when the user asks for recent or up-to-date content, or when the topic evolves quickly (e.g. framework releases, news events).',
-      },
-      page: {
-        type: 'number',
-        description:
-          'Page number for paginated results, starting at 1. Each page returns up to 10 videos. Use page 2 or higher only when the first page results are insufficient or the user explicitly asks for more options. Defaults to page 1 if omitted.',
-      },
-    },
-    required: ['query'],
-    additionalProperties: false,
-  },
-  input_examples: [
-    {
-      query: 'apple inc',
-      country: 'ar',
-      language: 'es',
-      autocorrect: false,
-      dateRange: 'qdr:y',
-      page: 2,
-    },
-  ],
-};
+

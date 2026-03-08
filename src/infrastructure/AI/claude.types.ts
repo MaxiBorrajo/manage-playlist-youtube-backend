@@ -1,3 +1,5 @@
+import Anthropic from '@anthropic-ai/sdk';
+import { ToolResultBlockParam } from '@anthropic-ai/sdk/resources';
 import { date, z } from 'zod';
 
 export const PlaylistResponseSchema = z.object({
@@ -17,3 +19,21 @@ export const PlaylistResponseSchema = z.object({
     )
     .optional(),
 });
+
+export abstract class Tool {
+  toolName: string;
+
+  constructor(toolName: string) {
+    this.toolName = toolName;
+  }
+
+  abstract execute(
+    toolBlocks: Anthropic.Messages.ToolUseBlock[],
+    ...args: any[]
+  ): Promise<ToolResultBlockParam[]>;
+
+  abstract executeTool(
+    block: Anthropic.Messages.ToolUseBlock,
+    ...args: any[]
+  ): Promise<ToolResultBlockParam>;
+}
