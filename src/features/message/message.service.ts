@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { MessageRepository } from './message.repository';
-import { ClaudeService } from 'src/infrastructure/ai/claude.service';
+import { ClaudeService } from 'src/infrastructure/ai/claude/claude.service';
 import { SendMessageInput } from './dto/sendMessage.input';
 import { ChatRepository } from '../chat/chat.repository';
 import { ChatService } from '../chat/chat.service';

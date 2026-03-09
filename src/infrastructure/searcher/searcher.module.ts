@@ -6,4 +6,4 @@ import { SearcherService } from './searcher.service';
   providers: [SearcherService],
   exports: [SearcherService],
 })
-export class ScrapersModule {}
+export class SearcherModule {}

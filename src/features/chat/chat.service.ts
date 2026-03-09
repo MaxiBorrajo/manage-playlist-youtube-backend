@@ -3,18 +3,18 @@ import { UpdateChatInput } from './dto/update-chat.input';
 import { ChatRepository } from './chat.repository';
 import { MessageRepository } from '../message/message.repository';
 import { Transactional } from '@mikro-orm/core';
-import { ClaudeService } from 'src/infrastructure/ai/claude.service';
+import { ClaudeService } from 'src/infrastructure/ai/claude/claude.service';
 
 @Injectable()
 export class ChatService {
-  constructor( 
+  constructor(
     private readonly chatRepository: ChatRepository,
     private readonly messageRepository: MessageRepository,
     private readonly claudeService: ClaudeService,
   ) {}
 
   @Transactional()
-  async create(prompt:string, userId: number) {
+  async create(prompt: string, userId: number) {
     const chat = this.chatRepository.create({
       name: prompt.substring(0, 50),
       user: userId,

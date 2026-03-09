@@ -3,11 +3,11 @@ import Anthropic from '@anthropic-ai/sdk';
 import { ConfigService } from '@nestjs/config';
 import { serperDevTool } from '../scrapers/serper.dev/serperDev.constants';
 import { zodOutputFormat } from '@anthropic-ai/sdk/helpers/zod';
-import {  ToolResultBlockParam } from '@anthropic-ai/sdk/resources';
+import { ToolResultBlockParam } from '@anthropic-ai/sdk/resources';
 import { PlaylistResponseSchema } from './claude.types';
 import { AnthropicRefusalException } from './exceptions/anthropicRefusal.exception';
 import { MaxTokensExceededException } from './exceptions/maxTokensExceeded.exception';
-import { ToolsExecutionService } from './toolsExecution.service';
+import { ToolsExecutionService } from '../toolsExecution.service';
 import { claudeSystem } from './claude.constants';
 
 @Injectable()
@@ -18,7 +18,10 @@ export class ClaudeService {
 
   tools: Anthropic.Tool[] = [serperDevTool];
 
-  constructor(private readonly configService: ConfigService, private readonly toolsExecutionService: ToolsExecutionService) {}
+  constructor(
+    private readonly configService: ConfigService,
+    private readonly toolsExecutionService: ToolsExecutionService,
+  ) {}
 
   async generateResponse(
     newMessage: Anthropic.Messages.MessageParam,
@@ -84,8 +87,10 @@ export class ClaudeService {
     return this.handleMessageContent(msg);
   }
 
-  private handleMessageContent(msg: Anthropic.Messages.Message & { _request_id?: string | null; }) {
-    const textBlock = msg.content.find(block => block.type === 'text');
+  private handleMessageContent(
+    msg: Anthropic.Messages.Message & { _request_id?: string | null },
+  ) {
+    const textBlock = msg.content.find((block) => block.type === 'text');
     return textBlock ? JSON.parse(textBlock.text) : msg.content;
   }
 
@@ -112,9 +117,10 @@ export class ClaudeService {
   async executeTools(
     content: Anthropic.Messages.ContentBlock[],
   ): Promise<string | Anthropic.Messages.ContentBlockParam[]> {
-    const toolsResults: ToolResultBlockParam[] = await this.toolsExecutionService.execute(content);
+    const toolsResults: ToolResultBlockParam[] =
+      await this.toolsExecutionService.execute(content);
 
-    return toolsResults
+    return toolsResults;
   }
 
   handleRefusal(

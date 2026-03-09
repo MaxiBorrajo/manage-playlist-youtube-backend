@@ -564,8 +564,8 @@
           "length": 255,
           "mappedType": "string"
         },
-        "date": {
-          "name": "date",
+        "published_at": {
+          "name": "published_at",
           "type": "varchar(255)",
           "unsigned": false,
           "autoincrement": false,
@@ -573,11 +573,71 @@
           "nullable": false,
           "length": 255,
           "mappedType": "string"
+        },
+        "language": {
+          "name": "language",
+          "type": "varchar(255)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "length": 255,
+          "mappedType": "string"
+        },
+        "country": {
+          "name": "country",
+          "type": "varchar(255)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "length": 255,
+          "mappedType": "string"
+        },
+        "embedding": {
+          "name": "embedding",
+          "type": "vector(1536)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "length": 1536,
+          "mappedType": "unknown"
         }
       },
       "name": "video",
       "schema": "public",
       "indexes": [
+        {
+          "columnNames": [
+            "published_at"
+          ],
+          "composite": false,
+          "keyName": "video_published_at_index",
+          "constraint": false,
+          "primary": false,
+          "unique": false
+        },
+        {
+          "columnNames": [
+            "language"
+          ],
+          "composite": false,
+          "keyName": "video_language_index",
+          "constraint": false,
+          "primary": false,
+          "unique": false
+        },
+        {
+          "columnNames": [
+            "country"
+          ],
+          "composite": false,
+          "keyName": "video_country_index",
+          "constraint": false,
+          "primary": false,
+          "unique": false
+        },
         {
           "keyName": "video_pkey",
           "columnNames": [
