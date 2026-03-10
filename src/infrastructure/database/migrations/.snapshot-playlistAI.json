@@ -524,16 +524,6 @@
           "length": 255,
           "mappedType": "string"
         },
-        "video_id": {
-          "name": "video_id",
-          "type": "varchar(255)",
-          "unsigned": false,
-          "autoincrement": false,
-          "primary": false,
-          "nullable": true,
-          "length": 255,
-          "mappedType": "string"
-        },
         "thumbnail": {
           "name": "thumbnail",
           "type": "varchar(255)",
@@ -618,16 +608,6 @@
       "name": "video",
       "schema": "public",
       "indexes": [
-        {
-          "columnNames": [
-            "video_id"
-          ],
-          "composite": false,
-          "keyName": "video_video_id_unique",
-          "constraint": true,
-          "primary": false,
-          "unique": true
-        },
         {
           "columnNames": [
             "published_at"

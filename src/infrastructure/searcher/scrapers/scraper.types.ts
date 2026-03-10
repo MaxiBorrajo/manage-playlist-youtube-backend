@@ -1,21 +1,40 @@
 import { Video } from 'src/features/video/video.model';
 import { SearchQueryParams } from '../searcher.types';
 import { VideoRepository } from 'src/features/video/video.repository';
+import { VoyageAiService } from 'src/infrastructure/ai/voyageAi/voyageAi.service';
 
 export abstract class Scraper {
-  constructor(protected readonly videoRepository: VideoRepository) {}
-  async scrape(params: SearchQueryParams): Promise<Video[]> {
+  constructor(
+    protected readonly videoRepository: VideoRepository,
+    protected readonly voyageAiService: VoyageAiService,
+  ) {}
+
+  async scrape(params: SearchQueryParams): Promise<Omit<Video, 'embedding'>[]> {
     const data = await this.obtainData(params);
     const videos = await this.parseDataToVideos(params, data);
     await this.saveVideos(videos);
-    return videos;
+    return videos.map((video) => {
+      const { embedding, ...videoWithoutEmbedding } = video;
+      return videoWithoutEmbedding;
+    });
   }
-  
+
   abstract obtainData(params: SearchQueryParams): Promise<unknown>;
 
-  abstract parseDataToVideos(params: SearchQueryParams, data: unknown): Promise<Video[]> | Video[];
+  abstract parseDataToVideos(
+    params: SearchQueryParams,
+    data: unknown,
+  ): Promise<Video[]> | Video[];
 
   async saveVideos(videos: Video[]): Promise<void> {
+    await Promise.all(
+      videos.map(async (video) => {
+        const embedding = await this.voyageAiService.getEmbedding(
+          JSON.stringify(video),
+        );
+        video.embedding = `[${embedding.join(',')}]`;
+      }),
+    );
     await this.videoRepository.save(videos);
   }
 }

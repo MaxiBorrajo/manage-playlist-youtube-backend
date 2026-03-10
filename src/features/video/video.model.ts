@@ -33,10 +33,6 @@ export class Video extends BaseModel {
   url: string;
 
   @Field({ nullable: true })
-  @Property({ unique: true, nullable: true })
-  videoId?: string;
-
-  @Field({ nullable: true })
   @Property({ nullable: true })
   thumbnail?: string;
 

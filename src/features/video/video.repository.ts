@@ -15,33 +15,30 @@ export class VideoRepository extends BaseRepository<Video> {
     limit = 10,
   ): Promise<Video[]> {
     const conditions: string[] = [];
-    const params: unknown[] = [];
+    const filterParams: unknown[] = [];
 
     if (filters.country) {
-      params.push(filters.country);
-      conditions.push(`v.country = $${params.length}`);
+      filterParams.push(filters.country);
+      conditions.push(`v.country = ?`);
     }
     if (filters.language) {
-      params.push(filters.language);
-      conditions.push(`v.language = $${params.length}`);
+      filterParams.push(filters.language);
+      conditions.push(`v.language = ?`);
     }
 
     const whereClause =
       conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
 
     const vectorStr = `[${embedding.join(',')}]`;
-    params.push(vectorStr);
-    const vectorParam = `$${params.length}`;
 
-    params.push(limit);
-    const limitParam = `$${params.length}`;
+    const params: unknown[] = [vectorStr, ...filterParams, limit];
 
     const sql = `
-      SELECT v.*, (v.embedding <=> ${vectorParam}::vector) AS distance
+      SELECT v.*, (v.embedding <=> ?::vector) AS distance
       FROM video v
       ${whereClause}
       ORDER BY distance ASC
-      LIMIT ${limitParam}
+      LIMIT ?
     `;
 
     const rows = await this.em.getConnection().execute(sql, params);

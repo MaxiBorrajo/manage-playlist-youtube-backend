@@ -7,13 +7,15 @@ import { SearchQueryParams } from '../../searcher.types';
 import { Scraper } from '../scraper.types';
 import { Video } from 'src/features/video/video.model';
 import { VideoRepository } from 'src/features/video/video.repository';
+import { VoyageAiService } from 'src/infrastructure/ai/voyageAi/voyageAi.service';
 @Injectable()
 export class SerperDevService extends Scraper {
   constructor(
     private readonly configService: ConfigService,
     protected readonly videoRepository: VideoRepository,
+    protected readonly voyageAiService: VoyageAiService,
   ) {
-    super(videoRepository);
+    super(videoRepository, voyageAiService);
   }
 
   async obtainData(
@@ -62,7 +64,6 @@ export class SerperDevService extends Scraper {
         title: video.title,
         description: video.snippet,
         url,
-        videoId,
         thumbnail: video.imageUrl,
         duration: video.duration,
         source,

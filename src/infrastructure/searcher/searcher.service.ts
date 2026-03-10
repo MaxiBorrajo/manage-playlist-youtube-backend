@@ -12,6 +12,7 @@ import { VoyageAiService } from '../ai/voyageAi/voyageAi.service';
 import { NoEmbeddingReturnException } from '../ai/voyageAi/exceptions/noEmbeddingReturn.exception';
 import { Video } from 'src/features/video/video.model';
 import { Scraper } from './scrapers/scraper.types';
+import { SerperDevService } from './scrapers/serper.dev/serperDev.service';
 
 @Injectable()
 export class SearcherService extends Tool {
@@ -21,8 +22,10 @@ export class SearcherService extends Tool {
   constructor(
     private readonly voyageAiService: VoyageAiService,
     private readonly videoRepository: VideoRepository,
+    private readonly serperDevService: SerperDevService,
   ) {
     super('search_videos');
+    this.scrapers.push(this.serperDevService);
   }
 
   async execute(
@@ -126,7 +129,7 @@ export class SearcherService extends Tool {
       `Scraping videos for "${query.query}" using ${this.scrapers.length} scraper(s).`,
     );
 
-    const videos: Video[] = (
+    const videos: Omit<Video, "embedding">[] = (
       await Promise.all(this.scrapers.map((scraper) => scraper.scrape(query)))
     ).flat();
 
