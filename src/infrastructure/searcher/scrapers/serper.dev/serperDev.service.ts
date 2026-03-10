@@ -4,17 +4,23 @@ import axios from 'axios';
 import { SerperDevVideoSearchResponse } from './serperDev.types';
 import { ToolResultBlockParam } from '@anthropic-ai/sdk/resources';
 import { SearchQueryParams } from '../../searcher.types';
-
+import { Scraper } from '../scraper.types';
+import { Video } from 'src/features/video/video.model';
+import { VideoRepository } from 'src/features/video/video.repository';
 @Injectable()
-export class SerperDevService{
-  constructor(private readonly configService: ConfigService) {
+export class SerperDevService extends Scraper {
+  constructor(
+    private readonly configService: ConfigService,
+    protected readonly videoRepository: VideoRepository,
+  ) {
+    super(videoRepository);
   }
 
-  async executeTool(
-    params: SearchQueryParams
-  ): Promise<ToolResultBlockParam> {
+  async obtainData(
+    params: SearchQueryParams,
+  ): Promise<SerperDevVideoSearchResponse> {
     const { query, country, language, autocorrect, dateRange, page } = params;
-    
+
     const config = {
       method: 'post',
       maxBodyLength: Infinity,
@@ -34,15 +40,56 @@ export class SerperDevService{
     };
 
     try {
-      const response = await axios.request(config);
-      return {
-        tool_use_id: block.id,
-        type: 'tool_result',
-        content: JSON.stringify(response.data as SerperDevVideoSearchResponse),
-      };
+      const { data } = await axios.request(config);
+
+      const responseData = data as SerperDevVideoSearchResponse;
+
+      return responseData;
     } catch (error) {
       console.error('Error searching videos:', error);
       throw new Error('Failed to search videos');
+    }
+  }
+
+  parseDataToVideos(
+    params: SearchQueryParams,
+    data: SerperDevVideoSearchResponse,
+  ): Promise<Video[]> | Video[] {
+    const videos: Video[] = data.videos.map((video) => {
+      const url = video.videoUrl || video.link;
+      const { videoId, source } = this.parseVideoUrl(url);
+      return this.videoRepository.create({
+        title: video.title,
+        description: video.snippet,
+        url,
+        videoId,
+        thumbnail: video.imageUrl,
+        duration: video.duration,
+        source,
+        channel: video.channel,
+        publishedAt: video.date,
+        language: params.language || '',
+        country: params.country || '',
+      });
+    });
+
+    return videos;
+  }
+
+  private parseVideoUrl(url: string): { videoId: string; source: string } {
+    try {
+      const parsed = new URL(url);
+      if (
+        parsed.hostname.includes('youtube.com') ||
+        parsed.hostname.includes('youtu.be')
+      ) {
+        const videoId =
+          parsed.searchParams.get('v') || parsed.pathname.slice(1);
+        return { videoId, source: 'youtube' };
+      }
+      return { videoId: '', source: parsed.hostname };
+    } catch {
+      return { videoId: '', source: '' };
     }
   }
 }

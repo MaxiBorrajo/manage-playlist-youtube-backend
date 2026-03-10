@@ -14,17 +14,42 @@ export class VideoRepository extends BaseRepository<Video> {
     filters: { country?: string; language?: string; dateRange?: string },
     limit = 10,
   ): Promise<Video[]> {
-    const results = await this.em
-      .createQueryBuilder(Video, 'v')
-      .select('*')
-      .addSelect(`embedding <=> '[${embedding.join(',')}]' AS distance`)
-      .andWhere({
-        ...(filters.country && { country: filters.country }),
-        ...(filters.language && { language: filters.language }),
-      })
-      .orderBy({ distance: 'ASC' })
-      .limit(limit);
+    const conditions: string[] = [];
+    const params: unknown[] = [];
 
-    return results;
+    if (filters.country) {
+      params.push(filters.country);
+      conditions.push(`v.country = $${params.length}`);
+    }
+    if (filters.language) {
+      params.push(filters.language);
+      conditions.push(`v.language = $${params.length}`);
+    }
+
+    const whereClause =
+      conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
+
+    const vectorStr = `[${embedding.join(',')}]`;
+    params.push(vectorStr);
+    const vectorParam = `$${params.length}`;
+
+    params.push(limit);
+    const limitParam = `$${params.length}`;
+
+    const sql = `
+      SELECT v.*, (v.embedding <=> ${vectorParam}::vector) AS distance
+      FROM video v
+      ${whereClause}
+      ORDER BY distance ASC
+      LIMIT ${limitParam}
+    `;
+
+    const rows = await this.em.getConnection().execute(sql, params);
+
+    return rows.map((row: any) => {
+      const video = this.em.map(Video, row);
+      video.distance = parseFloat(row.distance);
+      return video;
+    });
   }
 }

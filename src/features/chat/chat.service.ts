@@ -9,8 +9,6 @@ import { ClaudeService } from 'src/infrastructure/ai/claude/claude.service';
 export class ChatService {
   constructor(
     private readonly chatRepository: ChatRepository,
-    private readonly messageRepository: MessageRepository,
-    private readonly claudeService: ClaudeService,
   ) {}
 
   @Transactional()

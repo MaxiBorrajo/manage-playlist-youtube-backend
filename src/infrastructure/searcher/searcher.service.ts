@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { inherits } from 'util';
 import { Tool } from '../ai/claude/claude.types';
 import {
@@ -10,9 +10,12 @@ import { SearchQueryParams } from './searcher.types';
 import { VideoRepository } from 'src/features/video/video.repository';
 import { VoyageAiService } from '../ai/voyageAi/voyageAi.service';
 import { NoEmbeddingReturnException } from '../ai/voyageAi/exceptions/noEmbeddingReturn.exception';
+import { Video } from 'src/features/video/video.model';
+import { Scraper } from './scrapers/scraper.types';
 
 @Injectable()
 export class SearcherService extends Tool {
+  private readonly logger = new Logger(SearcherService.name);
   scrapers: Scraper[] = [];
 
   constructor(
@@ -61,11 +64,18 @@ export class SearcherService extends Tool {
         30,
       );
 
+      this.logger.log(
+        `pgvector search for "${query}": ${videos.length} videos found (distances: ${videos.map((v) => v.distance?.toFixed(3)).join(', ')})`,
+      );
+
       if (
         videos.length < 10 ||
         videos.some((v) => v.distance && v.distance > 0.5)
       ) {
-        return await this.executeScrapers({
+        this.logger.log(
+          `Insufficient pgvector results (${videos.length} found, need 10+ with distance < 0.5). Falling back to scrapers.`,
+        );
+        return await this.executeScrapers(block.id, {
           query,
           country,
           language,
@@ -75,6 +85,8 @@ export class SearcherService extends Tool {
         });
       }
 
+      this.logger.log(`Returning ${videos.length} videos from pgvector.`);
+
       return {
         tool_use_id: block.id,
         type: 'tool_result',
@@ -82,7 +94,10 @@ export class SearcherService extends Tool {
       };
     } catch (error) {
       if (error instanceof NoEmbeddingReturnException) {
-        return await this.executeScrapers({
+        this.logger.warn(
+          `Embedding generation failed for "${query}". Falling back to scrapers.`,
+        );
+        return await this.executeScrapers(block.id, {
           query,
           country,
           language,
@@ -96,14 +111,31 @@ export class SearcherService extends Tool {
     }
   }
 
-  executeScrapers(query: {
-    query: string;
-    country?: CountryCode;
-    language: LanguageCode | undefined;
-    autocorrect: boolean | undefined;
-    dateRange: DateRangeCode | undefined;
-    page: number | undefined;
-  }): ToolResultBlockParam | PromiseLike<ToolResultBlockParam> {
-    throw new Error('Method not implemented.');
+  async executeScrapers(
+    blockId: string,
+    query: {
+      query: string;
+      country?: CountryCode;
+      language: LanguageCode | undefined;
+      autocorrect: boolean | undefined;
+      dateRange: DateRangeCode | undefined;
+      page: number | undefined;
+    },
+  ): Promise<ToolResultBlockParam> {
+    this.logger.log(
+      `Scraping videos for "${query.query}" using ${this.scrapers.length} scraper(s).`,
+    );
+
+    const videos: Video[] = (
+      await Promise.all(this.scrapers.map((scraper) => scraper.scrape(query)))
+    ).flat();
+
+    this.logger.log(`Scrapers returned ${videos.length} videos.`);
+
+    return {
+      tool_use_id: blockId,
+      type: 'tool_result',
+      content: JSON.stringify(videos),
+    };
   }
 }

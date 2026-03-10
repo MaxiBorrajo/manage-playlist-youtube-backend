@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { VoyageAiService } from './voyageAi.service';
 
 @Module({
     imports: [],

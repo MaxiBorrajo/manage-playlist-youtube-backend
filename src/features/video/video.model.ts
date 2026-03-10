@@ -32,30 +32,30 @@ export class Video extends BaseModel {
   @Property()
   url: string;
 
-  @Field()
-  @Property({ unique: true })
-  videoId: string;
+  @Field({ nullable: true })
+  @Property({ unique: true, nullable: true })
+  videoId?: string;
 
-  @Field()
-  @Property()
-  thumbnail: string;
+  @Field({ nullable: true })
+  @Property({ nullable: true })
+  thumbnail?: string;
 
-  @Field()
-  @Property()
-  duration: string;
+  @Field({ nullable: true })
+  @Property({ nullable: true })
+  duration?: string;
 
-  @Field()
-  @Property()
-  source: string;
+  @Field({ nullable: true })
+  @Property({ nullable: true })
+  source?: string;
 
-  @Field()
-  @Property()
-  channel: string;
+  @Field({ nullable: true })
+  @Property({ nullable: true })
+  channel?: string;
 
-  @Field()
-  @Property()
+  @Field({ nullable: true })
+  @Property({ nullable: true })
   @Index()
-  publishedAt: string;
+  publishedAt?: string;
 
   @Field()
   @Property()
@@ -69,7 +69,7 @@ export class Video extends BaseModel {
 
   @Property({
     type: 'vector',
-    length: 1536,
+    length: 768,
   })
   embedding: unknown;
 

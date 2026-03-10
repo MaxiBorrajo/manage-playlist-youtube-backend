@@ -6,7 +6,7 @@ import { MessageModule } from '../message/message.module';
 import { AiModule } from 'src/infrastructure/ai/ai.module';
 
 @Module({
-  imports: [AiModule, forwardRef(() => MessageModule)],
+  imports: [forwardRef(() => MessageModule)],
   providers: [ChatResolver, ChatService, ChatRepository],
   exports: [ChatService, ChatRepository],
 })

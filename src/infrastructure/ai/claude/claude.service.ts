@@ -1,14 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import Anthropic from '@anthropic-ai/sdk';
 import { ConfigService } from '@nestjs/config';
-import { serperDevTool } from '../scrapers/serper.dev/serperDev.constants';
 import { zodOutputFormat } from '@anthropic-ai/sdk/helpers/zod';
 import { ToolResultBlockParam } from '@anthropic-ai/sdk/resources';
 import { PlaylistResponseSchema } from './claude.types';
 import { AnthropicRefusalException } from './exceptions/anthropicRefusal.exception';
 import { MaxTokensExceededException } from './exceptions/maxTokensExceeded.exception';
-import { ToolsExecutionService } from '../toolsExecution.service';
 import { claudeSystem } from './claude.constants';
+import { searcherTool } from 'src/infrastructure/searcher/searcher.constants';
+import { ToolsExecutionService } from './toolsExecution.service';
 
 @Injectable()
 export class ClaudeService {
@@ -16,7 +16,7 @@ export class ClaudeService {
     apiKey: this.configService.get('CLAUDE_API_KEY'),
   });
 
-  tools: Anthropic.Tool[] = [serperDevTool];
+  tools: Anthropic.Tool[] = [searcherTool];
 
   constructor(
     private readonly configService: ConfigService,
@@ -28,6 +28,7 @@ export class ClaudeService {
     messages: Anthropic.Messages.MessageParam[],
   ): Promise<string | Anthropic.Messages.ContentBlockParam[]> {
     //Ver de siempre poder añadir mas contexto a la conversación, y no solo el ultimo mensaje del usuario
+
     const msg = await this.anthropic.messages.create({
       model: 'claude-haiku-4-5-20251001',
       system: claudeSystem,

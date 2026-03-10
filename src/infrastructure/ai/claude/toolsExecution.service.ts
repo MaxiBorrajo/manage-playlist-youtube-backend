@@ -1,12 +1,15 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { ToolResultBlockParam } from '@anthropic-ai/sdk/resources';
 import { Injectable } from '@nestjs/common';
-import { Tool } from './claude/claude.types';
+import { Tool } from './claude.types';
+import { SearcherService } from 'src/infrastructure/searcher/searcher.service';
 
 @Injectable()
 export class ToolsExecutionService {
   tools: Tool[] = [];
-  constructor() {}
+  constructor(private readonly searcherService: SearcherService) {
+    this.tools.push(this.searcherService);
+  }
 
   async execute(
     content: Anthropic.Messages.ContentBlock[],

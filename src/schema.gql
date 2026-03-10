@@ -103,16 +103,19 @@ type User {
 }
 
 type Video {
-  channel: String!
+  channel: String
+  country: String!
   createdAt: DateTime!
-  date: String!
   description: String
-  duration: String!
+  duration: String
   id: Int!
   items: [PlaylistItem!]!
-  source: String!
-  thumbnail: String!
+  language: String!
+  publishedAt: String
+  source: String
+  thumbnail: String
   title: String!
   updatedAt: DateTime
   url: String!
+  videoId: String
 }

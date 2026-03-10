@@ -11,9 +11,10 @@ import { APP_PIPE } from '@nestjs/core';
 import { AuthModule } from './features/auth/auth.module';
 import { AppController } from './app.controller';
 import { ChatModule } from './features/chat/chat.module';
-import { ScrapersModule } from './infrastructure/scrapers/scrapers.module';
-import { AiModule } from './infrastructure/ai/ai.module';
 import { MessageModule } from './features/message/message.module';
+import { SearcherModule } from './infrastructure/searcher/searcher.module';
+import { AiModule } from './infrastructure/ai/ai.module';
+import { VideoModule } from './features/video/video.module';
 
 @Module({
   imports: [
@@ -34,9 +35,10 @@ import { MessageModule } from './features/message/message.module';
     AuthModule,
     UserModule,
     ChatModule,
-    ScrapersModule,
+    SearcherModule,
     AiModule,
-    MessageModule
+    MessageModule,
+    VideoModule
   ],
   providers: [
     {

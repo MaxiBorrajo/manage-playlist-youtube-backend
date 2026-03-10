@@ -23,6 +23,8 @@ export class MessageService {
 
     const messagesOfChat = await this.getMessagesOfChat(chat.id, userId);
 
+    console.log(sendMessageInput.prompt)
+
     const response = await this.claudeService.generateResponse(
       {
         role: 'user',
