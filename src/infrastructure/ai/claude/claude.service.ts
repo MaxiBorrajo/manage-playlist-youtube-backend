@@ -3,7 +3,7 @@ import Anthropic from '@anthropic-ai/sdk';
 import { ConfigService } from '@nestjs/config';
 import { zodOutputFormat } from '@anthropic-ai/sdk/helpers/zod';
 import { ToolResultBlockParam } from '@anthropic-ai/sdk/resources';
-import { PlaylistResponseSchema } from './claude.types';
+import { PlaylistResponse, PlaylistResponseSchema } from './claude.types';
 import { AnthropicRefusalException } from './exceptions/anthropicRefusal.exception';
 import { MaxTokensExceededException } from './exceptions/maxTokensExceeded.exception';
 import { claudeSystem } from './claude.constants';
@@ -26,7 +26,7 @@ export class ClaudeService {
   async generateResponse(
     newMessage: Anthropic.Messages.MessageParam,
     messages: Anthropic.Messages.MessageParam[],
-  ): Promise<string | Anthropic.Messages.ContentBlockParam[]> {
+  ): Promise<PlaylistResponse> {
     //Ver de siempre poder añadir mas contexto a la conversación, y no solo el ultimo mensaje del usuario
 
     const msg = await this.anthropic.messages.create({
@@ -44,7 +44,7 @@ export class ClaudeService {
   async handleResponse(
     msg: Anthropic.Messages.Message & { _request_id?: string | null },
     messages: Anthropic.Messages.MessageParam[],
-  ): Promise<string | Anthropic.Messages.ContentBlockParam[]> {
+  ): Promise<PlaylistResponse> {
     if (msg.stop_reason === 'tool_use') {
       return this.handleToolUse(msg, messages);
     }
@@ -133,7 +133,7 @@ export class ClaudeService {
   async handlePause(
     messages: Anthropic.Messages.MessageParam[],
     maxRetries = 5,
-  ): Promise<string | Anthropic.Messages.ContentBlockParam[]> {
+  ): Promise<PlaylistResponse> {
     const msg = await this.anthropic.messages.create({
       model: 'claude-haiku-4-5-20251001',
       max_tokens: 1000,

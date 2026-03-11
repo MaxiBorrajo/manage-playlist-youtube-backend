@@ -407,6 +407,15 @@
           "nullable": false,
           "mappedType": "text"
         },
+        "metadata": {
+          "name": "metadata",
+          "type": "json",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": true,
+          "mappedType": "json"
+        },
         "role": {
           "name": "role",
           "type": "text",

@@ -64,7 +64,7 @@ export class SearcherService extends Tool {
           country,
           language,
         },
-        30,
+        7,
       );
 
       this.logger.log(
@@ -72,11 +72,11 @@ export class SearcherService extends Tool {
       );
 
       if (
-        videos.length < 10 ||
-        videos.some((v) => v.distance && v.distance > 0.5)
+        videos.length < 7 ||
+        videos.some((v) => v.distance && v.distance > 0.2)
       ) {
         this.logger.log(
-          `Insufficient pgvector results (${videos.length} found, need 10+ with distance < 0.5). Falling back to scrapers.`,
+          `Insufficient pgvector results (${videos.length} found, need 7+ with distance < 0.2). Falling back to scrapers.`,
         );
         return await this.executeScrapers(block.id, {
           query,

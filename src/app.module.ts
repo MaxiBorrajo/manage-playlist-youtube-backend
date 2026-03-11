@@ -15,6 +15,7 @@ import { MessageModule } from './features/message/message.module';
 import { SearcherModule } from './infrastructure/searcher/searcher.module';
 import { AiModule } from './infrastructure/ai/ai.module';
 import { VideoModule } from './features/video/video.module';
+import GraphQLJSON from 'graphql-type-json';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { VideoModule } from './features/video/video.module';
       graphiql: true,
       autoSchemaFile: join(process.cwd(), 'src/schema.gql'),
       sortSchema: true,
+      resolvers: { JSON: GraphQLJSON },
     }),
     PlaylistModule,
     AuthModule,

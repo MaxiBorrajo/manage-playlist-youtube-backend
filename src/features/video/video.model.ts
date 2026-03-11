@@ -66,6 +66,8 @@ export class Video extends BaseModel {
   @Property({
     type: 'vector',
     length: 768,
+    lazy: true,
+    hidden: true,
   })
   embedding: unknown;
 

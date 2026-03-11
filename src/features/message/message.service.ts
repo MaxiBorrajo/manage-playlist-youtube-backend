@@ -23,9 +23,7 @@ export class MessageService {
 
     const messagesOfChat = await this.getMessagesOfChat(chat.id, userId);
 
-    console.log(sendMessageInput.prompt)
-
-    const response = await this.claudeService.generateResponse(
+    const { message, metadata } = await this.claudeService.generateResponse(
       {
         role: 'user',
         content: sendMessageInput.prompt,
@@ -43,7 +41,8 @@ export class MessageService {
     });
 
     const assistantMessage = this.messageRepository.create({
-      content: JSON.stringify(response),
+      content: message,
+      metadata,
       role: ChatRole.ASSISTANT,
       chat,
     });
