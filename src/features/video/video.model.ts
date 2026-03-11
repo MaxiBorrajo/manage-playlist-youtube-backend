@@ -29,7 +29,7 @@ export class Video extends BaseModel {
   description?: string;
 
   @Field()
-  @Property()
+  @Property({ unique: true })
   url: string;
 
   @Field({ nullable: true })

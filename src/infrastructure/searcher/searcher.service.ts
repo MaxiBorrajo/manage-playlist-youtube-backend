@@ -52,8 +52,17 @@ export class SearcherService extends Tool {
     block: ToolUseBlock,
     ...args: any[]
   ): Promise<ToolResultBlockParam> {
-    const { query, country, language, autocorrect, dateRange, page } =
-      block.input as SearchQueryParams;
+    const {
+      query,
+      country,
+      language,
+      autocorrect,
+      dateRange,
+      page,
+      excludeVideoIds,
+    } = block.input as SearchQueryParams;
+
+    console.log('excludeVideoIds:', excludeVideoIds);
 
     try {
       const embedding = await this.voyageAiService.getEmbedding(query);
@@ -63,6 +72,7 @@ export class SearcherService extends Tool {
         {
           country,
           language,
+          excludeVideoIds,
         },
         7,
       );
@@ -71,12 +81,9 @@ export class SearcherService extends Tool {
         `pgvector search for "${query}": ${videos.length} videos found (distances: ${videos.map((v) => v.distance?.toFixed(3)).join(', ')})`,
       );
 
-      if (
-        videos.length < 7 ||
-        videos.some((v) => v.distance && v.distance > 0.2)
-      ) {
+      if (videos.length < 7) {
         this.logger.log(
-          `Insufficient pgvector results (${videos.length} found, need 7+ with distance < 0.2). Falling back to scrapers.`,
+          `Insufficient pgvector results (${videos.length} found, need 7+ with distance < 0.35). Falling back to scrapers.`,
         );
         return await this.executeScrapers(block.id, {
           query,
@@ -90,10 +97,14 @@ export class SearcherService extends Tool {
 
       this.logger.log(`Returning ${videos.length} videos from pgvector.`);
 
+      const relevantVideos = videos.filter(
+        (video) => (video.distance ?? 1) < 0.35,
+      );
+
       return {
         tool_use_id: block.id,
         type: 'tool_result',
-        content: JSON.stringify(videos),
+        content: JSON.stringify(relevantVideos),
       };
     } catch (error) {
       if (error instanceof NoEmbeddingReturnException) {
@@ -129,7 +140,7 @@ export class SearcherService extends Tool {
       `Scraping videos for "${query.query}" using ${this.scrapers.length} scraper(s).`,
     );
 
-    const videos: Omit<Video, "embedding">[] = (
+    const videos: Omit<Video, 'embedding'>[] = (
       await Promise.all(this.scrapers.map((scraper) => scraper.scrape(query)))
     ).flat();
 

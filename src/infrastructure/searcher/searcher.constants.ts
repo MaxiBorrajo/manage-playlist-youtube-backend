@@ -38,6 +38,12 @@ export const searcherTool: Anthropic.Tool = {
         description:
           'Page number for paginated results, starting at 1. Each page returns up to 10 videos. Use page 2 or higher only when the first page results are insufficient or the user explicitly asks for more options. Defaults to page 1 if omitted.',
       },
+      excludeVideoIds: {
+        type: 'array',
+        items: { type: 'number' },
+        description:
+          'Array of video IDs to exclude from results. Use this to avoid returning videos that were already shown to the user in previous messages within the same conversation. Extract the IDs from previously returned video results.',
+      },
     },
     required: ['query'],
     additionalProperties: false,

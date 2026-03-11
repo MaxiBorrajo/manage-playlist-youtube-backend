@@ -12,6 +12,7 @@ export abstract class Scraper {
   async scrape(params: SearchQueryParams): Promise<Omit<Video, 'embedding'>[]> {
     const data = await this.obtainData(params);
     const videos = await this.parseDataToVideos(params, data);
+    //Pasar el save a segundo plano y retornar los videos creados con id y delegar el generar el embedding a un worker aparte, para asi poder mostrar los resultados al usuario lo antes posible y no hacerle esperar a que se generen los embeddings de cada video, que es lo que mas tarda de todo el proceso
     await this.saveVideos(videos);
     return videos.map((video) => {
       const { embedding, ...videoWithoutEmbedding } = video;
@@ -35,6 +36,6 @@ export abstract class Scraper {
         video.embedding = `[${embedding.join(',')}]`;
       }),
     );
-    await this.videoRepository.save(videos);
+    await this.videoRepository.upsertMany(videos);
   }
 }

@@ -1,6 +1,7 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { ToolResultBlockParam } from '@anthropic-ai/sdk/resources';
 import { date, z } from 'zod';
+import { id } from 'zod/v4/locales';
 
 export const PlaylistResponseSchema = z.object({
   message: z.string(),
@@ -9,6 +10,7 @@ export const PlaylistResponseSchema = z.object({
       videos: z
         .array(
           z.object({
+            id: z.number(),
             link: z.string(),
             title: z.string(),
             description: z.string().optional(),

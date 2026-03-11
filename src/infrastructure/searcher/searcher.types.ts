@@ -7,4 +7,5 @@ export interface SearchQueryParams {
   autocorrect?: boolean;
   dateRange?: DateRangeCode;
   page?: number;
+  excludeVideoIds?: number[];
 }

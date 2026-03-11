@@ -619,6 +619,16 @@
       "indexes": [
         {
           "columnNames": [
+            "url"
+          ],
+          "composite": false,
+          "keyName": "video_url_unique",
+          "constraint": true,
+          "primary": false,
+          "unique": true
+        },
+        {
+          "columnNames": [
             "published_at"
           ],
           "composite": false,

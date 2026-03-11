@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import Anthropic from '@anthropic-ai/sdk';
 import { ConfigService } from '@nestjs/config';
 import { zodOutputFormat } from '@anthropic-ai/sdk/helpers/zod';
@@ -9,6 +9,7 @@ import { MaxTokensExceededException } from './exceptions/maxTokensExceeded.excep
 import { claudeSystem } from './claude.constants';
 import { searcherTool } from 'src/infrastructure/searcher/searcher.constants';
 import { ToolsExecutionService } from './toolsExecution.service';
+import { meta } from 'zod/v4/core';
 
 @Injectable()
 export class ClaudeService {
@@ -85,14 +86,47 @@ export class ClaudeService {
       );
     }
 
-    return this.handleMessageContent(msg);
+    return this.handleMessageContent(msg, messages);
   }
 
-  private handleMessageContent(
+  private async handleMessageContent(
     msg: Anthropic.Messages.Message & { _request_id?: string | null },
-  ) {
+    messages: Anthropic.Messages.MessageParam[],
+  ): Promise<PlaylistResponse> {
     const textBlock = msg.content.find((block) => block.type === 'text');
-    return textBlock ? JSON.parse(textBlock.text) : msg.content;
+
+    let response: PlaylistResponse | { message: undefined; metadata: unknown };
+
+    if (textBlock) {
+      try {
+        response = PlaylistResponseSchema.parse(JSON.parse(textBlock.text));
+      } catch {
+        Logger.warn(
+          `Failed to parse response JSON, retrying. Raw text: ${textBlock.text.substring(0, 300)}`,
+        );
+        return await this.handleEmptyResponse([
+          ...messages,
+          {
+            role: msg.role,
+            content: msg.content,
+          },
+        ]);
+      }
+    } else {
+      response = { message: undefined, metadata: msg.content };
+    }
+
+    if (response.message === undefined) {
+      return await this.handleEmptyResponse([
+        ...messages,
+        {
+          role: msg.role,
+          content: msg.content,
+        },
+      ]);
+    }
+
+    return response;
   }
 
   async handleToolUse(
@@ -145,7 +179,7 @@ export class ClaudeService {
     }
 
     if (maxRetries <= 0) {
-      return this.handleMessageContent(msg);
+      return this.handleMessageContent(msg, messages);
     }
 
     return await this.handlePause(
@@ -167,12 +201,23 @@ export class ClaudeService {
   }
 
   async handleEmptyResponse(messages: Anthropic.Messages.MessageParam[]) {
+    const cleanMessages = messages.filter((msg) => {
+      return (
+        typeof msg.content === 'string' ||
+        !Array.isArray(msg.content) ||
+        !msg.content.some(
+          (block: any) =>
+            block.type === 'tool_use' || block.type === 'tool_result',
+        )
+      );
+    });
+
     return await this.generateResponse(
       {
         role: 'user',
         content: 'Please provide a response to the previous message.',
       },
-      messages,
+      cleanMessages,
     );
   }
 }

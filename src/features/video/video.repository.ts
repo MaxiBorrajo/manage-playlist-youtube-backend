@@ -11,7 +11,7 @@ export class VideoRepository extends BaseRepository<Video> {
 
   async searchByEmbedding(
     embedding: number[],
-    filters: { country?: string; language?: string; dateRange?: string },
+    filters: { country?: string; language?: string; dateRange?: string; excludeVideoIds?: number[] },
     limit = 10,
   ): Promise<Video[]> {
     const conditions: string[] = [];
@@ -25,6 +25,11 @@ export class VideoRepository extends BaseRepository<Video> {
       filterParams.push(filters.language);
       conditions.push(`v.language = ?`);
     }
+    if (filters.excludeVideoIds && filters.excludeVideoIds.length > 0) {
+      filterParams.push(...filters.excludeVideoIds);
+      conditions.push(`v.id NOT IN (${filters.excludeVideoIds.map(() => '?').join(',')})`);
+    }
+
 
     const whereClause =
       conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
@@ -43,7 +48,7 @@ export class VideoRepository extends BaseRepository<Video> {
 
     const rows = await this.em.getConnection().execute(sql, params);
 
-    return rows.map((row: any) => {
+    return rows.map((row) => {
       const video = this.em.map(Video, row);
       video.distance = parseFloat(row.distance);
       return video;

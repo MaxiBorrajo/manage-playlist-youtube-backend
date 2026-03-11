@@ -5,7 +5,9 @@ import { SendMessageInput } from './dto/sendMessage.input';
 import { ChatRepository } from '../chat/chat.repository';
 import { ChatService } from '../chat/chat.service';
 import { ChatRole } from '../chat/chat.types';
-import { Transactional } from '@mikro-orm/core';
+import { Loaded, Transactional } from '@mikro-orm/core';
+import { Message } from './message.model';
+import { Video } from '../video/video.model';
 
 @Injectable()
 export class MessageService {
@@ -23,10 +25,19 @@ export class MessageService {
 
     const messagesOfChat = await this.getMessagesOfChat(chat.id, userId);
 
+    const previousVideoIds: number[] =
+      this.extractVideoIdsFromMessages(messagesOfChat);
+
+    console.log(previousVideoIds)
+
     const { message, metadata } = await this.claudeService.generateResponse(
       {
         role: 'user',
-        content: sendMessageInput.prompt,
+        content: `${sendMessageInput.prompt} ${
+          previousVideoIds.length > 0
+            ? `Here are the video ids already in the playlist: ${previousVideoIds.join(', ')}. Please avoid suggesting these videos again.`
+            : ''
+        }`,
       },
       messagesOfChat.map((message) => ({
         role: message.role === ChatRole.USER ? 'user' : 'assistant',
@@ -50,6 +61,16 @@ export class MessageService {
     await this.messageRepository.save([userMessage, assistantMessage]);
 
     return assistantMessage;
+  }
+
+  extractVideoIdsFromMessages(
+    messagesOfChat: Loaded<Message, never, '*', never>[],
+  ) {
+    return messagesOfChat
+      .filter((message) => message.metadata && message.metadata['videos'])
+      .flatMap((message) =>
+        message.metadata!['videos'].map((video: Video) => video.id),
+      );
   }
 
   async getMessagesOfChat(chatId: number, userId: number) {
