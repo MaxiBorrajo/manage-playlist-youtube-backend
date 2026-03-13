@@ -28,6 +28,11 @@ export const searcherTool: Anthropic.Tool = {
         description:
           'Whether to autocorrect spelling in the query before searching. Set to true (default) for natural language queries where typos are possible. Set to false when the query contains technical terms, proper nouns, or acronyms that should not be altered (e.g. "NestJS", "CUDA", "GPT-4o").',
       },
+      forceScraping: {
+        type: 'boolean',
+        description:
+          'Set to true to skip the internal video database and fetch fresh results directly from external sources. Use this when the database results are not relevant to what the user is looking for or when the user explicitly asks for new/different results. Defaults to false.',
+      },
       dateRange: {
         type: 'string',
         description:

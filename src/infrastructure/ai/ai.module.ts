@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ClaudeModule } from './claude/claude.module';
-import { ToolsExecutionService } from './claude/toolsExecution.service';
+import { ToolsExecutionService } from './claude/tools/toolsExecution.service';
 import { VoyageAiModule } from './voyageAi/voyageAi.module';
 
 @Module({

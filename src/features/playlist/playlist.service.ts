@@ -6,8 +6,8 @@ import {
 } from '@nestjs/common';
 import { Playlist } from './models/playlist.model';
 import { Loaded } from '@mikro-orm/core';
-import { PlaylistRepository } from './playlist.repository';
-import { UsersService } from '../user/user.service';
+import { PlaylistRepository } from './repositories/playlist.repository';
+import { PlaylistItemRepository } from './repositories/playlistItem.repository';
 
 @Injectable()
 export class PlaylistsService {

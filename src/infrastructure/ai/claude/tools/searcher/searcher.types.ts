@@ -5,6 +5,7 @@ export interface SearchQueryParams {
   country?: CountryCode;
   language?: LanguageCode;
   autocorrect?: boolean;
+  forceScraping?: boolean;
   dateRange?: DateRangeCode;
   page?: number;
   excludeVideoIds?: number[];

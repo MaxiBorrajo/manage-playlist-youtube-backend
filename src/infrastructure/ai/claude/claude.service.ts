@@ -7,9 +7,9 @@ import { PlaylistResponse, PlaylistResponseSchema } from './claude.types';
 import { AnthropicRefusalException } from './exceptions/anthropicRefusal.exception';
 import { MaxTokensExceededException } from './exceptions/maxTokensExceeded.exception';
 import { claudeSystem } from './claude.constants';
-import { searcherTool } from 'src/infrastructure/searcher/searcher.constants';
-import { ToolsExecutionService } from './toolsExecution.service';
-import { meta } from 'zod/v4/core';
+import { ToolsExecutionService } from './tools/toolsExecution.service';
+import { createPlaylistTool } from './tools/createPlaylist/createPlaylist.constants';
+import { searcherTool } from './tools/searcher/searcher.constants';
 
 @Injectable()
 export class ClaudeService {
@@ -17,7 +17,7 @@ export class ClaudeService {
     apiKey: this.configService.get('CLAUDE_API_KEY'),
   });
 
-  tools: Anthropic.Tool[] = [searcherTool];
+  tools: Anthropic.Tool[] = [searcherTool, createPlaylistTool];
 
   constructor(
     private readonly configService: ConfigService,
@@ -30,10 +30,12 @@ export class ClaudeService {
   ): Promise<PlaylistResponse> {
     //Ver de siempre poder añadir mas contexto a la conversación, y no solo el ultimo mensaje del usuario
 
+    console.log('Messages sent to API:', JSON.stringify([...messages, newMessage], null, 2));
+
     const msg = await this.anthropic.messages.create({
       model: 'claude-haiku-4-5-20251001',
       system: claudeSystem,
-      max_tokens: 2500,
+      max_tokens: 8000,
       messages: [...messages, newMessage],
       tools: this.tools,
       output_config: { format: zodOutputFormat(PlaylistResponseSchema) },
@@ -201,16 +203,28 @@ export class ClaudeService {
   }
 
   async handleEmptyResponse(messages: Anthropic.Messages.MessageParam[]) {
-    const cleanMessages = messages.filter((msg) => {
-      return (
-        typeof msg.content === 'string' ||
-        !Array.isArray(msg.content) ||
-        !msg.content.some(
-          (block: any) =>
-            block.type === 'tool_use' || block.type === 'tool_result',
-        )
+    const cleanMessages: Anthropic.Messages.MessageParam[] = [];
+
+    for (const msg of messages) {
+      if (typeof msg.content === 'string') {
+        cleanMessages.push(msg);
+        continue;
+      }
+
+      if (!Array.isArray(msg.content)) {
+        cleanMessages.push(msg);
+        continue;
+      }
+
+      const filteredContent = msg.content.filter(
+        (block: any) =>
+          block.type !== 'tool_use' && block.type !== 'tool_result',
       );
-    });
+
+      if (filteredContent.length > 0) {
+        cleanMessages.push({ role: msg.role, content: filteredContent });
+      }
+    }
 
     return await this.generateResponse(
       {

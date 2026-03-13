@@ -11,11 +11,11 @@ import { APP_PIPE } from '@nestjs/core';
 import { AuthModule } from './features/auth/auth.module';
 import { AppController } from './app.controller';
 import { ChatModule } from './features/chat/chat.module';
-import { MessageModule } from './features/message/message.module';
-import { SearcherModule } from './infrastructure/searcher/searcher.module';
 import { AiModule } from './infrastructure/ai/ai.module';
 import { VideoModule } from './features/video/video.module';
 import GraphQLJSON from 'graphql-type-json';
+import { SearcherModule } from './infrastructure/ai/claude/tools/searcher/searcher.module';
+import { MessageModule } from './features/message/message.module';
 
 @Module({
   imports: [

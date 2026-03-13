@@ -1,6 +1,4 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { inherits } from 'util';
-import { Tool } from '../ai/claude/claude.types';
 import {
   ToolUseBlock,
   ToolResultBlockParam,
@@ -8,11 +6,12 @@ import {
 import { CountryCode, DateRangeCode, LanguageCode } from './searcher.constants';
 import { SearchQueryParams } from './searcher.types';
 import { VideoRepository } from 'src/features/video/video.repository';
-import { VoyageAiService } from '../ai/voyageAi/voyageAi.service';
-import { NoEmbeddingReturnException } from '../ai/voyageAi/exceptions/noEmbeddingReturn.exception';
 import { Video } from 'src/features/video/video.model';
 import { Scraper } from './scrapers/scraper.types';
 import { SerperDevService } from './scrapers/serper.dev/serperDev.service';
+import { Tool } from '../tools.types';
+import { VoyageAiService } from 'src/infrastructure/ai/voyageAi/voyageAi.service';
+import { NoEmbeddingReturnException } from 'src/infrastructure/ai/voyageAi/exceptions/noEmbeddingReturn.exception';
 
 @Injectable()
 export class SearcherService extends Tool {
@@ -28,26 +27,6 @@ export class SearcherService extends Tool {
     this.scrapers.push(this.serperDevService);
   }
 
-  async execute(
-    toolBlocks: ToolUseBlock[],
-    ...args: any[]
-  ): Promise<ToolResultBlockParam[]> {
-    const correspondingToolBlocks = toolBlocks.filter(
-      (block) => block.name === this.toolName,
-    );
-
-    const results: ToolResultBlockParam[] = [];
-
-    await Promise.all(
-      correspondingToolBlocks.map(async (block) => {
-        const result = await this.executeTool(block, ...args);
-        results.push(result);
-      }),
-    );
-
-    return results;
-  }
-
   async executeTool(
     block: ToolUseBlock,
     ...args: any[]
@@ -57,31 +36,40 @@ export class SearcherService extends Tool {
       country,
       language,
       autocorrect,
+      forceScraping,
       dateRange,
       page,
       excludeVideoIds,
     } = block.input as SearchQueryParams;
 
     console.log('excludeVideoIds:', excludeVideoIds);
+    let videos: Video[] = [];
 
     try {
-      const embedding = await this.voyageAiService.getEmbedding(query);
+      if (!forceScraping) {
+        const embedding = await this.voyageAiService.getEmbedding(query);
 
-      const videos = await this.videoRepository.searchByEmbedding(
-        embedding,
-        {
-          country,
-          language,
-          excludeVideoIds,
-        },
-        7,
-      );
+        videos = await this.videoRepository.searchByEmbedding(
+          embedding,
+          {
+            country,
+            language,
+            excludeVideoIds,
+          },
+          7,
+        );
 
-      this.logger.log(
-        `pgvector search for "${query}": ${videos.length} videos found (distances: ${videos.map((v) => v.distance?.toFixed(3)).join(', ')})`,
-      );
+        this.logger.log(
+          `pgvector search for "${query}": ${videos.length} videos found (distances: ${videos.map((v) => v.distance?.toFixed(3)).join(', ')})`,
+        );
+      }
 
-      if (videos.length < 7) {
+      //Si esta forzado a scrappear, o si el embedding no devuelve resultados relevantes, entonces scrappeo. Esto es para evitar el problema de que el embedding no sea bueno para ciertos tipos de consultas, lo cual hace que no se devuelvan resultados aunque existan videos relevantes en la base de datos.
+      if (
+        forceScraping ||
+        videos.length < 7 ||
+        videos.every((video) => (video.distance ?? 1) >= 0.35)
+      ) {
         this.logger.log(
           `Insufficient pgvector results (${videos.length} found, need 7+ with distance < 0.35). Falling back to scrapers.`,
         );
