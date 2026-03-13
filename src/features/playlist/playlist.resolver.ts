@@ -34,6 +34,6 @@ export class PlaylistsResolver {
 
   @ResolveField()
   async items(@Parent() playlist: Playlist) {
-    return playlist.items.load({ dataloader: true });
+    return playlist.items.load({ dataloader: true, populate: ['video'] });
   }
 }

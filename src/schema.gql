@@ -57,7 +57,7 @@ type Playlist {
 
 type PlaylistItem {
   createdAt: DateTime!
-  notes: String!
+  notes: String
   playlist: Playlist!
   position: Int!
   updatedAt: DateTime

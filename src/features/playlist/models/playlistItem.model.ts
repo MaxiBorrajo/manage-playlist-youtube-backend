@@ -19,7 +19,7 @@ export class PlaylistItem extends BaseModel {
   @Property({ type: 'integer' })
   position: number;
 
-  @Field()
+  @Field({ nullable: true })
   @Property({ nullable: true, columnType: 'text' })
   notes?: string;
 }
