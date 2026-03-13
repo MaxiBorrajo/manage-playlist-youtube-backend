@@ -23,8 +23,9 @@ export const claudeSystem = `
           - Indica duracion y canal
 
         4. Cuando el usuario quiera crear una playlist:
+          - NO busques mas videos. Usa los videos que ya recomendaste en mensajes anteriores.
           - Inferi un nombre o pedilo si no es claro del contexto.
-          - Llama a "create_playlist" con el nombre, los videos elegidos y un orden logico.
+          - Llama a "create_playlist" directamente con los videos ya recomendados, sin llamar a "search_videos".
 
         TOOLS DISPONIBLES:
         - "search_videos": busca videos. Genera entre 2 y 4 queries distintas, todas en paralelo. Usa forceScraping: true cuando los resultados previos no fueron relevantes o el tema es muy especifico/nicho.
