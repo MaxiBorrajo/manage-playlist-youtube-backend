@@ -4,6 +4,9 @@ import { Injectable } from '@nestjs/common';
 import { Tool } from './tools.types';
 import { CreatePlaylistToolService } from './createPlaylist/createPlaylist.service';
 import { SearcherService } from './searcher/searcher.service';
+import { UpdatePlaylistItemsToolService } from './updatePlaylistItems/updatePlaylistItems.service';
+import { SearchMessagesOfChatToolService } from './searchMessagesOfChat/searchMessagesOfChat.service';
+import { UpdatePlaylistToolService } from './updatePlaylist/updatePlaylist.service';
 
 @Injectable()
 export class ToolsExecutionService {
@@ -11,9 +14,15 @@ export class ToolsExecutionService {
   constructor(
     private readonly searcherService: SearcherService,
     private readonly createPlaylistToolService: CreatePlaylistToolService,
+    private readonly updatePlaylistItemsToolService: UpdatePlaylistItemsToolService,
+    private readonly updatePlaylistToolService: UpdatePlaylistToolService,
+    private readonly searchMessagesOfChatToolService: SearchMessagesOfChatToolService,
   ) {
     this.tools.push(this.searcherService);
     this.tools.push(this.createPlaylistToolService);
+    this.tools.push(this.updatePlaylistItemsToolService);
+    this.tools.push(this.updatePlaylistToolService);
+    this.tools.push(this.searchMessagesOfChatToolService);
   }
 
   async execute(

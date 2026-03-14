@@ -3,6 +3,7 @@ import {
   Collection,
   Entity,
   Enum,
+  Index,
   ManyToMany,
   ManyToOne,
   OneToMany,
@@ -13,6 +14,7 @@ import { BaseModel } from 'src/shared/database/base.model';
 import { ChatRole } from '../chat/chat.types';
 import { Chat } from '../chat/chat.model';
 import GraphQLJSON from 'graphql-type-json';
+import { FullTextType } from '@mikro-orm/postgresql';
 
 @ObjectType()
 @Entity()
@@ -22,7 +24,8 @@ export class Message extends BaseModel {
   id: number;
 
   @Field()
-  @Property({ columnType: 'text' })
+    @Index({ type: 'fulltext' })
+  @Property({ type: FullTextType })
   content: string;
 
   @Field(() => GraphQLJSON, {nullable: true})

@@ -10,6 +10,9 @@ import { claudeSystem } from './claude.constants';
 import { ToolsExecutionService } from './tools/toolsExecution.service';
 import { createPlaylistTool } from './tools/createPlaylist/createPlaylist.constants';
 import { searcherTool } from './tools/searcher/searcher.constants';
+import { updatePlaylistItemTool } from './tools/updatePlaylistItems/updatePlaylistItems.constants';
+import { updatePlaylistTool } from './tools/updatePlaylist/updatePlaylist.constants';
+import { searchMessagesOfChatTool } from './tools/searchMessagesOfChat/searchMessagesOfChat.constants';
 
 @Injectable()
 export class ClaudeService {
@@ -17,7 +20,13 @@ export class ClaudeService {
     apiKey: this.configService.get('CLAUDE_API_KEY'),
   });
 
-  tools: Anthropic.Tool[] = [searcherTool, createPlaylistTool];
+  tools: Anthropic.Tool[] = [
+    searcherTool,
+    createPlaylistTool,
+    updatePlaylistItemTool,
+    searchMessagesOfChatTool,
+    updatePlaylistTool,
+  ];
 
   constructor(
     private readonly configService: ConfigService,
@@ -30,7 +39,10 @@ export class ClaudeService {
   ): Promise<PlaylistResponse> {
     //Ver de siempre poder añadir mas contexto a la conversación, y no solo el ultimo mensaje del usuario
 
-    console.log('Messages sent to API:', JSON.stringify([...messages, newMessage], null, 2));
+    console.log(
+      'Messages sent to API:',
+      JSON.stringify([...messages, newMessage], null, 2),
+    );
 
     const msg = await this.anthropic.messages.create({
       model: 'claude-haiku-4-5-20251001',

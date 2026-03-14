@@ -13,6 +13,11 @@ export const createPlaylistTool: Anthropic.Tool = {
         description:
           'The ID of the user for whom the playlist is being created. This should be a valid user ID from the database.',
       },
+      chatId: {
+        type: 'integer',
+        description:
+          'The ID of the chat session in which the playlist is being created.',
+      },
       name: {
         type: 'string',
         description:
@@ -56,7 +61,7 @@ export const createPlaylistTool: Anthropic.Tool = {
           'The list of videos to include in the playlist, each with a position and optional notes.',
       },
     },
-    required: ['name', 'items', 'userId'],
+    required: ['name', 'items', 'userId', 'chatId'],
     additionalProperties: false,
   },
 };

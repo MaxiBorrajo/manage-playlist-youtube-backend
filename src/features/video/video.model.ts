@@ -12,6 +12,7 @@ import { Field, Int, ObjectType } from '@nestjs/graphql';
 import { Playlist } from '../playlist/models/playlist.model';
 import { BaseModel } from 'src/shared/database/base.model';
 import { PlaylistItem } from '../playlist/models/playlistItem.model';
+import { Chat } from '../chat/chat.model';
 
 @ObjectType()
 @Entity()
@@ -77,4 +78,8 @@ export class Video extends BaseModel {
   @Field((type) => [PlaylistItem])
   @OneToMany(() => PlaylistItem, (item) => item.video)
   items = new Collection<PlaylistItem>(this);
+
+  @Field((type) => Chat)
+  @ManyToOne(() => Chat, { deleteRule: 'cascade' })
+  chat!: Chat;
 }
