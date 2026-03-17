@@ -13,6 +13,15 @@ import { searcherTool } from './tools/searcher/searcher.constants';
 import { updatePlaylistItemTool } from './tools/updatePlaylistItems/updatePlaylistItems.constants';
 import { updatePlaylistTool } from './tools/updatePlaylist/updatePlaylist.constants';
 import { searchMessagesOfChatTool } from './tools/searchMessagesOfChat/searchMessagesOfChat.constants';
+import { searchChatsOfUserTool } from './tools/searchChatsOfUser/searchChatsOfUser.constants';
+import { removeVideosFromPlaylistTool } from './tools/removeVideosFromPlaylist/removeVideosFromPlaylist.constants';
+import { removePlaylistTool } from './tools/removePlaylist/removePlaylist.constants';
+import { getVideosOfPlaylistTool } from './tools/getVideosOfPlaylist/getVideosOfPlaylist.constants';
+import { getPlaylistsOfUserTool } from './tools/getPlaylistsOfUser/getPlaylistsOfUser.constants';
+import { getPlaylistsAssociatedWithChatTool } from './tools/getPlaylistsAssociatedWithChat/getPlaylistsAssociatedWithChat.constants';
+import { getCurrentAssociatedVideosWithChatTool } from './tools/getCurrentAssociatedVideosWithChat/getCurrentAssociatedVideosWithChat.constants';
+import { addVideosToPlaylistTool } from './tools/addVideosToPlaylist/addVideosToPlaylist.constants';
+import { removeAssociatedVideosWithChatTool } from './tools/removeAssociatedVideosWithChat/removeAssociatedVideosWithChat.constants';
 
 @Injectable()
 export class ClaudeService {
@@ -26,6 +35,15 @@ export class ClaudeService {
     updatePlaylistItemTool,
     searchMessagesOfChatTool,
     updatePlaylistTool,
+    searchChatsOfUserTool,
+    removeVideosFromPlaylistTool,
+    removePlaylistTool,
+    getVideosOfPlaylistTool,
+    getPlaylistsOfUserTool,
+    getPlaylistsAssociatedWithChatTool,
+    getCurrentAssociatedVideosWithChatTool,
+    addVideosToPlaylistTool,
+    removeAssociatedVideosWithChatTool
   ];
 
   constructor(

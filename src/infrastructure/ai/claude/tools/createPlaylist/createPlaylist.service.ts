@@ -3,6 +3,7 @@ import { PlaylistItemRepository } from 'src/features/playlist/repositories/playl
 import { PlaylistRepository } from 'src/features/playlist/repositories/playlist.repository';
 import Anthropic from '@anthropic-ai/sdk';
 import { Tool } from '../tools.types';
+import { ChatRepository } from 'src/features/chat/chat.repository';
 
 export class CreatePlaylistInput {
   name: string;
@@ -22,6 +23,7 @@ export class CreatePlaylistToolService extends Tool {
   constructor(
     private readonly playlistRepository: PlaylistRepository,
     private readonly playlistItemRepository: PlaylistItemRepository,
+    private readonly chatRepository: ChatRepository,
   ) {
     super('create_playlist');
   }
@@ -54,6 +56,13 @@ export class CreatePlaylistToolService extends Tool {
 
     playlist.items.add(itemsToCreate);
     await this.playlistRepository.save(playlist);
+
+    const chat = await this.chatRepository.findOneOrFail(chatId);
+
+    chat.playlistsCreated.add(playlist);
+    chat.currentSelection.removeAll();
+
+    await this.chatRepository.save(chat);
 
     return {
       tool_use_id: block.id,

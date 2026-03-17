@@ -13,21 +13,6 @@ export const searcherTool: Anthropic.Tool = {
         description:
           'The search query optimized for video discovery (e.g. "docker tutorial for beginners 2024", "python async await explained"). Be specific about the topic, level, and format to get more relevant results.',
       },
-      country: {
-        type: 'string',
-        description:
-          'ISO 3166-1 alpha-2 country code (lowercase) that localizes search results to a specific region (e.g. "us", "ar", "gb"). Affects which videos are surfaced based on regional popularity and availability. Use the country that matches the user\'s preferred region or the region most likely to have relevant content in the desired language. Omit to use the default global results.',
-      },
-      language: {
-        type: 'string',
-        description:
-          'ISO 639-1 language code (lowercase) to filter results by language (e.g. "en", "es", "pt"). Set this based on the user\'s language preference. Omit to receive results in any language.',
-      },
-      autocorrect: {
-        type: 'boolean',
-        description:
-          'Whether to autocorrect spelling in the query before searching. Set to true (default) for natural language queries where typos are possible. Set to false when the query contains technical terms, proper nouns, or acronyms that should not be altered (e.g. "NestJS", "CUDA", "GPT-4o").',
-      },
       forceScraping: {
         type: 'boolean',
         description:

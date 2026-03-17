@@ -7,6 +7,15 @@ import { SearcherService } from './searcher/searcher.service';
 import { UpdatePlaylistItemsToolService } from './updatePlaylistItems/updatePlaylistItems.service';
 import { SearchMessagesOfChatToolService } from './searchMessagesOfChat/searchMessagesOfChat.service';
 import { UpdatePlaylistToolService } from './updatePlaylist/updatePlaylist.service';
+import { SearchChatsOfUserToolService } from './searchChatsOfUser/searchChatsOfUser.service';
+import { RemoveVideosFromPlaylistToolService } from './removeVideosFromPlaylist/removeVideosFromPlaylist.service';
+import { RemovePlaylistToolService } from './removePlaylist/removePlaylist.service';
+import { GetVideosOfPlaylistToolService } from './getVideosOfPlaylist/getVideosOfPlaylist.service';
+import { GetPlaylistsOfUserToolService } from './getPlaylistsOfUser/getPlaylistsOfUser.service';
+import { GetPlaylistsAssociatedWithChatToolService } from './getPlaylistsAssociatedWithChat/getPlaylistsAssociatedWithChat.service';
+import { GetCurrentAssociatedVideosWithChatToolService } from './getCurrentAssociatedVideosWithChat/getCurrentAssociatedVideosWithChat.service';
+import { AddVideosToPlaylistToolService } from './addVideosToPlaylist/addVideosToPlaylist.service';
+import { RemoveAssociatedVideosWithChatToolService } from './removeAssociatedVideosWithChat/removeAssociatedVideosWithChat.service';
 
 @Injectable()
 export class ToolsExecutionService {
@@ -17,12 +26,30 @@ export class ToolsExecutionService {
     private readonly updatePlaylistItemsToolService: UpdatePlaylistItemsToolService,
     private readonly updatePlaylistToolService: UpdatePlaylistToolService,
     private readonly searchMessagesOfChatToolService: SearchMessagesOfChatToolService,
+    private readonly searchChatsOfUserToolService: SearchChatsOfUserToolService,
+    private readonly removeVideosFromPlaylistToolService: RemoveVideosFromPlaylistToolService,
+    private readonly removePlaylistToolService: RemovePlaylistToolService,
+    private readonly getVideosOfPlaylistToolService: GetVideosOfPlaylistToolService,
+    private readonly getPlaylistsOfUserToolService: GetPlaylistsOfUserToolService,
+    private readonly getPlaylistsAssociatedWithChatToolService: GetPlaylistsAssociatedWithChatToolService,
+    private readonly getCurrentAssociatedVideosWithChatToolService: GetCurrentAssociatedVideosWithChatToolService,
+    private readonly addVideosToPlaylistToolService: AddVideosToPlaylistToolService,
+    private readonly removeAssociatedVideosWithChatToolService: RemoveAssociatedVideosWithChatToolService
   ) {
     this.tools.push(this.searcherService);
     this.tools.push(this.createPlaylistToolService);
     this.tools.push(this.updatePlaylistItemsToolService);
     this.tools.push(this.updatePlaylistToolService);
     this.tools.push(this.searchMessagesOfChatToolService);
+    this.tools.push(this.searchChatsOfUserToolService);
+    this.tools.push(this.removeVideosFromPlaylistToolService);
+    this.tools.push(this.removePlaylistToolService);
+    this.tools.push(this.getVideosOfPlaylistToolService);
+    this.tools.push(this.getPlaylistsOfUserToolService);
+    this.tools.push(this.getPlaylistsAssociatedWithChatToolService);
+    this.tools.push(this.getCurrentAssociatedVideosWithChatToolService);
+    this.tools.push(this.addVideosToPlaylistToolService);
+    this.tools.push(this.removeAssociatedVideosWithChatToolService);
   }
 
   async execute(

@@ -16,7 +16,6 @@ export class UpdatePlaylistInput {
 export class UpdatePlaylistToolService extends Tool {
   constructor(
     private readonly playlistRepository: PlaylistRepository,
-    private readonly playlistItemRepository: PlaylistItemRepository,
   ) {
     super('update_playlist');
   }

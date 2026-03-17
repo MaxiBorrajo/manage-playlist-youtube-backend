@@ -2,9 +2,8 @@ import Anthropic from '@anthropic-ai/sdk';
 
 export const updatePlaylistTool: Anthropic.Tool = {
   name: 'update_playlist',
-  strict: true,
   description:
-    'Updates an existing playlist with the given name and videos. Use this tool when the user explicitly asks to update a playlist. Do NOT use this tool unless the user clearly requests playlist updates.',
+    'Updates the metadata of an existing playlist (name, thumbnail, description). This does NOT modify the videos inside the playlist — use update_playlist_items to change video positions/notes, add_videos_to_playlist to add videos, or remove_videos_from_playlist to remove videos. Use this tool when the user wants to rename a playlist or change its description.',
   input_schema: {
     type: 'object',
     properties: {

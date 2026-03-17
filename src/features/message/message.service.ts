@@ -28,8 +28,6 @@ export class MessageService {
     const previousVideoIds: number[] =
       this.extractVideoIdsFromMessages(messagesOfChat);
 
-    console.log(previousVideoIds);
-
     const { message, metadata } = await this.claudeService.generateResponse(
       {
         role: 'user',

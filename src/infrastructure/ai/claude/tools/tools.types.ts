@@ -1,5 +1,6 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { ToolResultBlockParam, ToolUseBlock } from "@anthropic-ai/sdk/resources";
+import { Transactional } from "@mikro-orm/core";
 
 export abstract class Tool {
   toolName: string;
@@ -8,6 +9,7 @@ export abstract class Tool {
     this.toolName = toolName;
   }
 
+  @Transactional()
   async execute(
     toolBlocks: ToolUseBlock[],
     ...args: any[]

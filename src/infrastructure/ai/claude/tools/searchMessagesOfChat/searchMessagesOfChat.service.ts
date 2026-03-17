@@ -1,20 +1,12 @@
 import { Injectable } from '@nestjs/common';
-import { PlaylistItemRepository } from 'src/features/playlist/repositories/playlistItem.repository';
-import { PlaylistRepository } from 'src/features/playlist/repositories/playlist.repository';
 import Anthropic from '@anthropic-ai/sdk';
 import { Tool } from '../tools.types';
 import { MessageRepository } from 'src/features/message/message.repository';
-import { Playlist } from 'src/features/playlist/models/playlist.model';
-import { Video } from 'src/features/video/video.model';
 
 export class SearchMessagesOfChatInput {
   userId: number;
   chatId: number;
   keyword: string;
-  metadata: {
-    videos?: Video[];
-    playlist: Playlist;
-  };
 }
 
 @Injectable()
@@ -27,7 +19,7 @@ export class SearchMessagesOfChatToolService extends Tool {
     block: Anthropic.Messages.ToolUseBlock,
     ...args: any[]
   ): Promise<Anthropic.Messages.ToolResultBlockParam> {
-    const { userId, chatId, keyword, metadata } =
+    const { userId, chatId, keyword } =
       block.input as SearchMessagesOfChatInput;
 
     const messages = await this.messageRepository.find({
@@ -35,10 +27,9 @@ export class SearchMessagesOfChatToolService extends Tool {
         id: chatId,
         user: userId,
       },
-      content: {
+      searchableContent: {
         $fulltext: keyword,
       },
-      metadata,
     });
 
     return {

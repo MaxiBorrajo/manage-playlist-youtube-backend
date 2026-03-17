@@ -4,9 +4,12 @@
 
 type Chat {
   createdAt: DateTime!
+  currentSelection: [Video!]!
   id: Int!
   messages: [Message!]!
   name: String!
+  playlistsCreated: [Playlist!]!
+  searchableName: String!
   updatedAt: DateTime
   user: User!
 }
@@ -34,6 +37,7 @@ type Message {
   id: Int!
   metadata: JSON
   role: ChatRole!
+  searchableContent: String!
   updatedAt: DateTime
 }
 
@@ -46,6 +50,7 @@ type Mutation {
 
 type Playlist {
   author: User!
+  chat: Chat!
   createdAt: DateTime!
   description: String
   id: Int!
@@ -110,6 +115,7 @@ type User {
 
 type Video {
   channel: String
+  chats: [Chat!]!
   country: String!
   createdAt: DateTime!
   description: String

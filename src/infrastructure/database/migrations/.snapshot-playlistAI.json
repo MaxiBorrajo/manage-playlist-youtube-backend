@@ -221,108 +221,13 @@
           "length": 255,
           "mappedType": "string"
         },
-        "thumbnail": {
-          "name": "thumbnail",
-          "type": "varchar(255)",
+        "searchable_name": {
+          "name": "searchable_name",
+          "type": "tsvector",
           "unsigned": false,
           "autoincrement": false,
           "primary": false,
-          "nullable": true,
-          "length": 255,
-          "mappedType": "string"
-        },
-        "description": {
-          "name": "description",
-          "type": "text",
-          "unsigned": false,
-          "autoincrement": false,
-          "primary": false,
-          "nullable": true,
-          "mappedType": "text"
-        },
-        "author_id": {
-          "name": "author_id",
-          "type": "int",
-          "unsigned": false,
-          "autoincrement": false,
-          "primary": false,
-          "nullable": false,
-          "mappedType": "integer"
-        }
-      },
-      "name": "playlist",
-      "schema": "public",
-      "indexes": [
-        {
-          "keyName": "playlist_pkey",
-          "columnNames": [
-            "id"
-          ],
-          "composite": false,
-          "constraint": true,
-          "primary": true,
-          "unique": true
-        }
-      ],
-      "checks": [],
-      "foreignKeys": {
-        "playlist_author_id_foreign": {
-          "constraintName": "playlist_author_id_foreign",
-          "columnNames": [
-            "author_id"
-          ],
-          "localTableName": "public.playlist",
-          "referencedColumnNames": [
-            "id"
-          ],
-          "referencedTableName": "public.user",
-          "deleteRule": "cascade",
-          "updateRule": "cascade"
-        }
-      },
-      "nativeEnums": {}
-    },
-    {
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "serial",
-          "unsigned": false,
-          "autoincrement": true,
-          "primary": true,
-          "nullable": false,
-          "mappedType": "integer"
-        },
-        "created_at": {
-          "name": "created_at",
-          "type": "timestamp(6)",
-          "unsigned": false,
-          "autoincrement": false,
-          "primary": false,
-          "nullable": false,
-          "length": 6,
-          "default": "now()",
-          "mappedType": "datetime"
-        },
-        "updated_at": {
-          "name": "updated_at",
-          "type": "timestamp(6)",
-          "unsigned": false,
-          "autoincrement": false,
-          "primary": false,
-          "nullable": true,
-          "length": 6,
-          "mappedType": "datetime"
-        },
-        "name": {
-          "name": "name",
-          "type": "varchar(255)",
-          "unsigned": false,
-          "autoincrement": false,
-          "primary": false,
-          "nullable": false,
-          "length": 255,
-          "mappedType": "string"
+          "nullable": true
         },
         "user_id": {
           "name": "user_id",
@@ -337,6 +242,27 @@
       "name": "chat",
       "schema": "public",
       "indexes": [
+        {
+          "columnNames": [
+            "name"
+          ],
+          "composite": false,
+          "keyName": "chat_name_index",
+          "constraint": false,
+          "primary": false,
+          "unique": false
+        },
+        {
+          "keyName": "chat_searchable_name_index",
+          "columnNames": [
+            "searchable_name"
+          ],
+          "composite": false,
+          "constraint": false,
+          "primary": false,
+          "unique": false,
+          "type": "fulltext"
+        },
         {
           "keyName": "chat_pkey",
           "columnNames": [
@@ -398,6 +324,131 @@
           "length": 6,
           "mappedType": "datetime"
         },
+        "name": {
+          "name": "name",
+          "type": "varchar(255)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "length": 255,
+          "mappedType": "string"
+        },
+        "thumbnail": {
+          "name": "thumbnail",
+          "type": "varchar(255)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": true,
+          "length": 255,
+          "mappedType": "string"
+        },
+        "description": {
+          "name": "description",
+          "type": "text",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": true,
+          "mappedType": "text"
+        },
+        "author_id": {
+          "name": "author_id",
+          "type": "int",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "mappedType": "integer"
+        },
+        "chat_id": {
+          "name": "chat_id",
+          "type": "int",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "mappedType": "integer"
+        }
+      },
+      "name": "playlist",
+      "schema": "public",
+      "indexes": [
+        {
+          "keyName": "playlist_pkey",
+          "columnNames": [
+            "id"
+          ],
+          "composite": false,
+          "constraint": true,
+          "primary": true,
+          "unique": true
+        }
+      ],
+      "checks": [],
+      "foreignKeys": {
+        "playlist_author_id_foreign": {
+          "constraintName": "playlist_author_id_foreign",
+          "columnNames": [
+            "author_id"
+          ],
+          "localTableName": "public.playlist",
+          "referencedColumnNames": [
+            "id"
+          ],
+          "referencedTableName": "public.user",
+          "deleteRule": "cascade",
+          "updateRule": "cascade"
+        },
+        "playlist_chat_id_foreign": {
+          "constraintName": "playlist_chat_id_foreign",
+          "columnNames": [
+            "chat_id"
+          ],
+          "localTableName": "public.playlist",
+          "referencedColumnNames": [
+            "id"
+          ],
+          "referencedTableName": "public.chat",
+          "deleteRule": "cascade",
+          "updateRule": "cascade"
+        }
+      },
+      "nativeEnums": {}
+    },
+    {
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "unsigned": false,
+          "autoincrement": true,
+          "primary": true,
+          "nullable": false,
+          "mappedType": "integer"
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp(6)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "length": 6,
+          "default": "now()",
+          "mappedType": "datetime"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp(6)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": true,
+          "length": 6,
+          "mappedType": "datetime"
+        },
         "content": {
           "name": "content",
           "type": "text",
@@ -406,6 +457,14 @@
           "primary": false,
           "nullable": false,
           "mappedType": "text"
+        },
+        "searchable_content": {
+          "name": "searchable_content",
+          "type": "tsvector",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": true
         },
         "metadata": {
           "name": "metadata",
@@ -443,6 +502,27 @@
       "name": "message",
       "schema": "public",
       "indexes": [
+        {
+          "columnNames": [
+            "content"
+          ],
+          "composite": false,
+          "keyName": "message_content_index",
+          "constraint": false,
+          "primary": false,
+          "unique": false
+        },
+        {
+          "keyName": "message_searchable_content_index",
+          "columnNames": [
+            "searchable_content"
+          ],
+          "composite": false,
+          "constraint": false,
+          "primary": false,
+          "unique": false,
+          "type": "fulltext"
+        },
         {
           "keyName": "message_pkey",
           "columnNames": [
@@ -768,6 +848,73 @@
             "video_id"
           ],
           "localTableName": "public.playlist_item",
+          "referencedColumnNames": [
+            "id"
+          ],
+          "referencedTableName": "public.video",
+          "deleteRule": "cascade",
+          "updateRule": "cascade"
+        }
+      },
+      "nativeEnums": {}
+    },
+    {
+      "columns": {
+        "chat_id": {
+          "name": "chat_id",
+          "type": "int",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "mappedType": "integer"
+        },
+        "video_id": {
+          "name": "video_id",
+          "type": "int",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "mappedType": "integer"
+        }
+      },
+      "name": "chat_current_selection",
+      "schema": "public",
+      "indexes": [
+        {
+          "keyName": "chat_current_selection_pkey",
+          "columnNames": [
+            "chat_id",
+            "video_id"
+          ],
+          "composite": true,
+          "constraint": true,
+          "primary": true,
+          "unique": true
+        }
+      ],
+      "checks": [],
+      "foreignKeys": {
+        "chat_current_selection_chat_id_foreign": {
+          "constraintName": "chat_current_selection_chat_id_foreign",
+          "columnNames": [
+            "chat_id"
+          ],
+          "localTableName": "public.chat_current_selection",
+          "referencedColumnNames": [
+            "id"
+          ],
+          "referencedTableName": "public.chat",
+          "deleteRule": "cascade",
+          "updateRule": "cascade"
+        },
+        "chat_current_selection_video_id_foreign": {
+          "constraintName": "chat_current_selection_video_id_foreign",
+          "columnNames": [
+            "video_id"
+          ],
+          "localTableName": "public.chat_current_selection",
           "referencedColumnNames": [
             "id"
           ],

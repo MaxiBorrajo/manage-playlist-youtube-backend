@@ -24,11 +24,20 @@ export class Message extends BaseModel {
   id: number;
 
   @Field()
-    @Index({ type: 'fulltext' })
-  @Property({ type: FullTextType })
+  @Index()
+  @Property({ columnType: 'text' })
   content: string;
 
-  @Field(() => GraphQLJSON, {nullable: true})
+  @Field()
+  @Property({
+    type: FullTextType,
+    onUpdate: (message: Message) => message.content,
+    nullable: true,
+  })
+  @Index({ type: 'fulltext' })
+  searchableContent?: string;
+
+  @Field(() => GraphQLJSON, { nullable: true })
   @Property({ columnType: 'json', nullable: true })
   metadata?: JSON;
 

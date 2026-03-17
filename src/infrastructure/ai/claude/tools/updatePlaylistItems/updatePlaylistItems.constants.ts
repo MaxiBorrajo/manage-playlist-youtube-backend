@@ -2,9 +2,8 @@ import Anthropic from '@anthropic-ai/sdk';
 
 export const updatePlaylistItemTool: Anthropic.Tool = {
   name: 'update_playlist_items',
-  strict: true,
   description:
-    'Updates an existing playlist item with the given details. Use this tool when the user explicitly asks to modify a video within an existing playlist.',
+    'Updates the notes and/or position of videos already in a playlist. This does NOT add or remove videos — use add_videos_to_playlist or remove_videos_from_playlist for that. Use this tool when the user wants to reorder videos within a playlist or update the notes associated with specific videos.',
   input_schema: {
     type: 'object',
     properties: {

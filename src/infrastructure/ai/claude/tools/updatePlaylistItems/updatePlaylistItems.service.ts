@@ -16,7 +16,6 @@ export class UpdatePlaylistItemsInput {
 @Injectable()
 export class UpdatePlaylistItemsToolService extends Tool {
   constructor(
-    private readonly playlistRepository: PlaylistRepository,
     private readonly playlistItemRepository: PlaylistItemRepository,
   ) {
     super('update_playlist_items');

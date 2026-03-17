@@ -3,7 +3,6 @@ import {
   Entity,
   Index,
   ManyToMany,
-  ManyToOne,
   OneToMany,
   PrimaryKey,
   Property,
@@ -79,7 +78,7 @@ export class Video extends BaseModel {
   @OneToMany(() => PlaylistItem, (item) => item.video)
   items = new Collection<PlaylistItem>(this);
 
-  @Field((type) => Chat)
-  @ManyToOne(() => Chat, { deleteRule: 'cascade' })
-  chat!: Chat;
+  @Field((type) => [Chat])
+  @ManyToMany(() => Chat, (chat) => chat.currentSelection)
+  chats = new Collection<Chat>(this);
 }
