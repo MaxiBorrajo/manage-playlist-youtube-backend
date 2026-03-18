@@ -3,7 +3,10 @@ import Anthropic from '@anthropic-ai/sdk';
 import { ConfigService } from '@nestjs/config';
 import { zodOutputFormat } from '@anthropic-ai/sdk/helpers/zod';
 import { ToolResultBlockParam } from '@anthropic-ai/sdk/resources';
-import { PlaylistResponse, PlaylistResponseSchema } from './claude.types';
+import {
+  PlaylistResponseSchema,
+  PlaylistResponseWithRole,
+} from './claude.types';
 import { AnthropicRefusalException } from './exceptions/anthropicRefusal.exception';
 import { MaxTokensExceededException } from './exceptions/maxTokensExceeded.exception';
 import { claudeSystem } from './claude.constants';
@@ -22,11 +25,13 @@ import { getPlaylistsAssociatedWithChatTool } from './tools/getPlaylistsAssociat
 import { getCurrentAssociatedVideosWithChatTool } from './tools/getCurrentAssociatedVideosWithChat/getCurrentAssociatedVideosWithChat.constants';
 import { addVideosToPlaylistTool } from './tools/addVideosToPlaylist/addVideosToPlaylist.constants';
 import { removeAssociatedVideosWithChatTool } from './tools/removeAssociatedVideosWithChat/removeAssociatedVideosWithChat.constants';
+import { addVideosToCurrentSelectionTool } from './tools/addVideosToCurrentSelection/addVideosToCurrentSelection.constants';
 
 @Injectable()
 export class ClaudeService {
   anthropic: Anthropic = new Anthropic({
     apiKey: this.configService.get('CLAUDE_API_KEY'),
+    maxRetries: 10,
   });
 
   tools: Anthropic.Tool[] = [
@@ -44,6 +49,7 @@ export class ClaudeService {
     getCurrentAssociatedVideosWithChatTool,
     addVideosToPlaylistTool,
     removeAssociatedVideosWithChatTool,
+    addVideosToCurrentSelectionTool,
   ];
 
   constructor(
@@ -51,12 +57,13 @@ export class ClaudeService {
     private readonly toolsExecutionService: ToolsExecutionService,
   ) {}
 
+  private static readonly MAX_TOOL_ROUNDS = 10;
+
   async generateResponse(
     newMessage: Anthropic.Messages.MessageParam,
     messages: Anthropic.Messages.MessageParam[],
-  ): Promise<(PlaylistResponse & { role: string })[]> {
-    //Ver de siempre poder añadir mas contexto a la conversación, y no solo el ultimo mensaje del usuario
-
+    toolRound = 0,
+  ): Promise<PlaylistResponseWithRole[]> {
     console.log(
       'Messages sent to API:',
       JSON.stringify([...messages, newMessage], null, 2),
@@ -64,24 +71,39 @@ export class ClaudeService {
 
     const session = [...messages, newMessage];
 
-    const aiResponse = await this.anthropic.messages.create({
+    const aiResponse = await this.anthropic.messages.create(
+      this.generateMessageConfig(session),
+    );
+
+    return this.handleResponse(aiResponse, session, toolRound);
+  }
+
+  private generateMessageConfig(
+    session: Anthropic.Messages.MessageParam[],
+  ): Anthropic.Messages.MessageCreateParamsNonStreaming {
+    return {
       model: 'claude-haiku-4-5-20251001',
       system: claudeSystem,
       max_tokens: 8000,
       messages: session,
       tools: this.tools,
       output_config: { format: zodOutputFormat(PlaylistResponseSchema) },
-    });
-
-    return this.handleResponse(aiResponse, session);
+    };
   }
 
   async handleResponse(
     aiResponse: Anthropic.Messages.Message & { _request_id?: string | null },
     session: Anthropic.Messages.MessageParam[],
-  ): Promise<PlaylistResponse[]> {
+    toolRound = 0,
+  ): Promise<PlaylistResponseWithRole[]> {
     if (aiResponse.stop_reason === 'tool_use') {
-      return this.handleToolUse(aiResponse, session);
+      if (toolRound >= ClaudeService.MAX_TOOL_ROUNDS) {
+        console.warn(
+          `Max tool rounds (${ClaudeService.MAX_TOOL_ROUNDS}) reached, forcing text response`,
+        );
+        return this.handleMessageContent(aiResponse, session);
+      }
+      return this.handleToolUse(aiResponse, session, toolRound);
     }
 
     //Claude stopped because it reached the max_tokens limit specified in your request.
@@ -126,45 +148,42 @@ export class ClaudeService {
   private async handleMessageContent(
     aiResponse: Anthropic.Messages.Message & { _request_id?: string | null },
     session: Anthropic.Messages.MessageParam[],
-  ): Promise<PlaylistResponse[]> {
+  ): Promise<PlaylistResponseWithRole[]> {
     const textBlock = aiResponse.content.find((block) => block.type === 'text');
-    const textBlocks = session
-      .map(
-        (message) => message.content as Anthropic.Messages.ContentBlockParam[],
-      )
-      .flatMap((content) => content.filter((block) => block.type === 'text'));
 
-    const responses: (
-      | PlaylistResponse
-      | { message: undefined; metadata: unknown }
-    )[] = [];
+    if (textBlock && textBlock.type === 'text') {
+      console.log('Raw AI response text:', textBlock.text);
 
-    const allTextBlocks = [...textBlocks, ...(textBlock ? [textBlock] : [])];
-
-    for (const block of allTextBlocks) {
-      if (block) {
-        try {
-          responses.push(PlaylistResponseSchema.parse(JSON.parse(block.text)));
-        } catch {
-          Logger.warn(
-            `Failed to parse response JSON, retrying. Raw text: ${block.text.substring(0, 300)}`,
-          );
-          return await this.handleEmptyResponse([
-            ...session,
-            {
-              role: aiResponse.role,
-              content: aiResponse.content,
-            },
-          ]);
-        }
-      } else {
-        responses.push({ message: undefined, metadata: aiResponse.content });
+      // Fix trailing commas that Haiku sometimes generates (e.g. ",}" or ",]")
+      const sanitized = textBlock.text.replace(/,\s*([}\]])/g, '$1');
+      if (sanitized !== textBlock.text) {
+        console.warn('Fixed trailing commas in AI response');
       }
-    }
 
-    for (const response of responses) {
-      if (response.message === undefined) {
-        return await this.handleEmptyResponse([
+      let parsed: unknown;
+      try {
+        parsed = JSON.parse(sanitized);
+      } catch (e) {
+        console.error(
+          'Failed to parse JSON from AI response:',
+          (e as Error).message,
+        );
+        console.error('Raw text:', textBlock.text);
+        throw new Error('AI response is not valid JSON');
+      }
+
+      console.log('Parsed AI response:', JSON.stringify(parsed, null, 2));
+      const validated = PlaylistResponseSchema.safeParse(parsed);
+
+      if (!validated.success) {
+        console.warn(
+          `Failed to validate AI response content. Request ID: ${aiResponse._request_id}`,
+          {
+            error: validated.error,
+            rawContent: textBlock.text,
+          },
+        );
+        return this.handleEmptyResponse([
           ...session,
           {
             role: aiResponse.role,
@@ -172,14 +191,40 @@ export class ClaudeService {
           },
         ]);
       }
+
+      const newMessage = {
+        ...validated.data,
+        role: 'assistant' as 'assistant' | 'user',
+      };
+
+      const messages = session
+        .filter((message) => {
+          return !Array.isArray(message.content);
+        })
+        .map((message) => {
+          return {
+            role: message.role,
+            message: message.content as string,
+            metadata: {},
+          };
+        });
+
+      return [...messages, newMessage];
     }
 
-    return responses.map((response) => response as PlaylistResponse);
+    return this.handleEmptyResponse([
+      ...session,
+      {
+        role: aiResponse.role,
+        content: aiResponse.content,
+      },
+    ]);
   }
 
   async handleToolUse(
     aiResponse: Anthropic.Messages.Message & { _request_id?: string | null },
     session: Anthropic.Messages.MessageParam[],
+    toolRound = 0,
   ) {
     const toolResults = await this.executeTools(aiResponse.content);
 
@@ -194,6 +239,7 @@ export class ClaudeService {
         content: toolResults,
       },
       session,
+      toolRound + 1,
     );
   }
 
@@ -215,12 +261,10 @@ export class ClaudeService {
   async handlePause(
     session: Anthropic.Messages.MessageParam[],
     maxRetries = 5,
-  ): Promise<PlaylistResponse[]> {
-    const aiResponse = await this.anthropic.messages.create({
-      model: 'claude-haiku-4-5-20251001',
-      max_tokens: 1000,
-      messages: session,
-    });
+  ): Promise<PlaylistResponseWithRole[]> {
+    const aiResponse = await this.anthropic.messages.create(
+      this.generateMessageConfig(session),
+    );
 
     if (aiResponse.stop_reason !== 'pause_turn') {
       return this.handleResponse(aiResponse, session);

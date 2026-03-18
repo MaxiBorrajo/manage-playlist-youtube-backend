@@ -16,6 +16,7 @@ import { GetPlaylistsAssociatedWithChatToolService } from './getPlaylistsAssocia
 import { GetCurrentAssociatedVideosWithChatToolService } from './getCurrentAssociatedVideosWithChat/getCurrentAssociatedVideosWithChat.service';
 import { AddVideosToPlaylistToolService } from './addVideosToPlaylist/addVideosToPlaylist.service';
 import { RemoveAssociatedVideosWithChatToolService } from './removeAssociatedVideosWithChat/removeAssociatedVideosWithChat.service';
+import { AddVideosToCurrentSelectionToolService } from './addVideosToCurrentSelection/addVideosToCurrentSelection.service';
 
 @Injectable()
 export class ToolsExecutionService {
@@ -34,7 +35,8 @@ export class ToolsExecutionService {
     private readonly getPlaylistsAssociatedWithChatToolService: GetPlaylistsAssociatedWithChatToolService,
     private readonly getCurrentAssociatedVideosWithChatToolService: GetCurrentAssociatedVideosWithChatToolService,
     private readonly addVideosToPlaylistToolService: AddVideosToPlaylistToolService,
-    private readonly removeAssociatedVideosWithChatToolService: RemoveAssociatedVideosWithChatToolService
+    private readonly removeAssociatedVideosWithChatToolService: RemoveAssociatedVideosWithChatToolService,
+    private readonly addVideosToCurrentSelectionToolService: AddVideosToCurrentSelectionToolService,
   ) {
     this.tools.push(this.searcherService);
     this.tools.push(this.createPlaylistToolService);
@@ -50,6 +52,7 @@ export class ToolsExecutionService {
     this.tools.push(this.getCurrentAssociatedVideosWithChatToolService);
     this.tools.push(this.addVideosToPlaylistToolService);
     this.tools.push(this.removeAssociatedVideosWithChatToolService);
+    this.tools.push(this.addVideosToCurrentSelectionToolService);
   }
 
   async execute(

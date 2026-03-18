@@ -2,12 +2,9 @@ import { Injectable } from '@nestjs/common';
 import { MessageRepository } from './message.repository';
 import { ClaudeService } from 'src/infrastructure/ai/claude/claude.service';
 import { SendMessageInput } from './dto/sendMessage.input';
-import { ChatRepository } from '../chat/chat.repository';
 import { ChatService } from '../chat/chat.service';
 import { ChatRole } from '../chat/chat.types';
-import { Loaded, Transactional } from '@mikro-orm/core';
-import { Message } from './message.model';
-import { Video } from '../video/video.model';
+import { Transactional } from '@mikro-orm/core';
 
 @Injectable()
 export class MessageService {
@@ -25,25 +22,18 @@ export class MessageService {
 
     const messagesOfChat = await this.getMessagesOfChat(chat.id, userId);
 
-    const previousVideoIds: number[] =
-      this.extractVideoIdsFromMessages(messagesOfChat);
-
     const userContext = `[userId: ${userId}, chatId: ${chat.id}]`;
 
     const session = await this.claudeService.generateResponse(
       {
         role: 'user',
-        content: `${userContext} ${sendMessageInput.prompt} ${
-          previousVideoIds.length > 0
-            ? `Here are the video ids already in the playlist: ${previousVideoIds.join(', ')}. Please avoid suggesting these videos again.`
-            : ''
-        }`,
+        content: `${userContext} ${sendMessageInput.prompt}`,
       },
       messagesOfChat.map((message) => ({
-        role: message.role === ChatRole.USER ? 'user' : 'assistant',
+        role: message.role === ChatRole.USER ? 'user' : ('assistant' as const),
         content:
-          message.role === ChatRole.USER
-            ? `${userContext} ${message.content}`
+          message.role === ChatRole.ASSISTANT && message.metadata
+            ? `${message.content}\n[metadata: ${JSON.stringify(message.metadata)}]`
             : message.content,
       })),
     );
@@ -56,19 +46,11 @@ export class MessageService {
         chat,
       }),
     );
-    await this.messageRepository.save(messagesToCreate);
+    await this.messageRepository.upsertMany(messagesToCreate, {
+      onConflictAction: 'ignore',
+    });
 
     return messagesToCreate[messagesToCreate.length - 1];
-  }
-
-  extractVideoIdsFromMessages(
-    messagesOfChat: Loaded<Message, never, '*', never>[],
-  ) {
-    return messagesOfChat
-      .filter((message) => message.metadata && message.metadata['videos'])
-      .flatMap((message) =>
-        message.metadata!['videos'].map((video: Video) => video.id),
-      );
   }
 
   async getMessagesOfChat(chatId: number, userId: number) {
@@ -80,7 +62,6 @@ export class MessageService {
         },
       },
       orderBy: { createdAt: 'asc' },
-      limit: 15,
     });
   }
 }

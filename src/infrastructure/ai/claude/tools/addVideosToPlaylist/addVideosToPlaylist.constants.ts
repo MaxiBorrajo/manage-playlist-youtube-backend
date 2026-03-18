@@ -3,7 +3,7 @@ import Anthropic from '@anthropic-ai/sdk';
 export const addVideosToPlaylistTool: Anthropic.Tool = {
   name: 'add_videos_to_playlist',
   description:
-    'Adds a video to an existing playlist at a specified position. Use this tool when the user wants to add a video (from search results or from the current selection) to a playlist that already exists. The video must have been previously found via search_videos.',
+    'Adds videos to an existing playlist. Use this tool when the user wants to add videos to a playlist that already exists. The videos must have been previously found via search_videos or be in the current selection.',
   input_schema: {
     type: 'object',
     properties: {
@@ -13,19 +13,37 @@ export const addVideosToPlaylistTool: Anthropic.Tool = {
       },
       playlistId: {
         type: 'integer',
-        description: 'The ID of the playlist to which to add the video.',
+        description: 'The ID of the playlist to add the videos to.',
       },
-      videoId: {
-        type: 'integer',
-        description: 'The ID of the video to add to the playlist.',
-      },
-      position: {
-        type: 'integer',
+      items: {
+        type: 'array',
+        items: {
+          type: 'object',
+          properties: {
+            videoId: {
+              type: 'integer',
+              description:
+                'The database ID of the video to add to the playlist.',
+            },
+            notes: {
+              type: 'string',
+              description:
+                'Optional short note explaining why this video was included or what makes it relevant to the playlist.',
+            },
+            position: {
+              type: 'integer',
+              description:
+                'The order position of this video in the playlist, starting at 1.',
+            },
+          },
+          required: ['videoId', 'position'],
+          additionalProperties: false,
+        },
         description:
-          'The position at which to add the video in the playlist. If not provided, the video will be added at the end of the playlist.',
+          'The list of videos to add to the playlist, each with a position and optional notes.',
       },
     },
-    required: ['videoId', 'userId', 'playlistId', 'position'],
+    required: ['userId', 'playlistId', 'items'],
     additionalProperties: false,
   },
 };

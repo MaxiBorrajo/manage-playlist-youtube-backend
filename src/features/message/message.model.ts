@@ -9,6 +9,7 @@ import {
   OneToMany,
   PrimaryKey,
   Property,
+  Unique,
 } from '@mikro-orm/core';
 import { BaseModel } from 'src/shared/database/base.model';
 import { ChatRole } from '../chat/chat.types';
@@ -18,6 +19,7 @@ import { FullTextType } from '@mikro-orm/postgresql';
 
 @ObjectType()
 @Entity()
+@Unique({ properties: ['content', 'role'] })
 export class Message extends BaseModel {
   @Field((type) => Int)
   @PrimaryKey({ type: 'integer', autoincrement: true })
@@ -38,8 +40,8 @@ export class Message extends BaseModel {
   searchableContent?: string;
 
   @Field(() => GraphQLJSON, { nullable: true })
-  @Property({ columnType: 'json', nullable: true })
-  metadata?: JSON;
+  @Property({ type: 'jsonb', nullable: true })
+  metadata?: Record<string, any>;
 
   @Field((type) => ChatRole)
   @Enum({ items: () => ChatRole, fieldName: 'role' })

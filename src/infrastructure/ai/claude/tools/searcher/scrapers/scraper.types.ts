@@ -36,6 +36,8 @@ export abstract class Scraper {
         video.embedding = `[${embedding.join(',')}]`;
       }),
     );
-    await this.videoRepository.upsertMany(videos);
+    await this.videoRepository.upsertMany(videos, {
+      onConflictAction: 'ignore',
+    });
   }
 }

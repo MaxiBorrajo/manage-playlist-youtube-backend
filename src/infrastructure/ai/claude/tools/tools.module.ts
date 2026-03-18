@@ -18,6 +18,7 @@ import { GetPlaylistsAssociatedWithChatToolService } from './getPlaylistsAssocia
 import { GetCurrentAssociatedVideosWithChatToolService } from './getCurrentAssociatedVideosWithChat/getCurrentAssociatedVideosWithChat.service';
 import { AddVideosToPlaylistToolService } from './addVideosToPlaylist/addVideosToPlaylist.service';
 import { MessageModule } from 'src/features/message/message.module';
+import { AddVideosToCurrentSelectionToolService } from './addVideosToCurrentSelection/addVideosToCurrentSelection.service';
 
 @Module({
   imports: [SearcherModule, PlaylistModule, forwardRef(() => ChatModule), VideoModule, forwardRef(() => MessageModule)],
@@ -35,7 +36,8 @@ import { MessageModule } from 'src/features/message/message.module';
     GetPlaylistsOfUserToolService,
     GetPlaylistsAssociatedWithChatToolService,
     GetCurrentAssociatedVideosWithChatToolService,
-    AddVideosToPlaylistToolService
+    AddVideosToPlaylistToolService,
+    AddVideosToCurrentSelectionToolService
   ],
   exports: [ToolsExecutionService],
 })

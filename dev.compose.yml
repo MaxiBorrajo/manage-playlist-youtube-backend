@@ -6,9 +6,9 @@ services:
       - .env
     ports:
       - "5433:5432"
-  redis:
-    image: redis
-    restart: always
-    ports:
-      - "6380:6379"
-    command: redis-server --save 60 1 --loglevel warning --requirepass ${REDIS_PASSWORD}
+  # redis:
+  #   image: redis
+  #   restart: always
+  #   ports:
+  #     - "6380:6379"
+  #   command: redis-server --save 60 1 --loglevel warning --requirepass ${REDIS_PASSWORD}

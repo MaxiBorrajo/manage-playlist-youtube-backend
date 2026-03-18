@@ -65,13 +65,16 @@ export class SearcherService extends Tool {
       }
 
       //Si esta forzado a scrappear, o si el embedding no devuelve resultados relevantes, entonces scrappeo. Esto es para evitar el problema de que el embedding no sea bueno para ciertos tipos de consultas, lo cual hace que no se devuelvan resultados aunque existan videos relevantes en la base de datos.
+      const relevantVideos = videos.filter(
+        (video) => (video.distance ?? 1) < 0.30,
+      );
+
       if (
         forceScraping ||
-        videos.length < 7 ||
-        videos.every((video) => (video.distance ?? 1) >= 0.35)
+        relevantVideos.length < 3
       ) {
         this.logger.log(
-          `Insufficient pgvector results (${videos.length} found, need 7+ with distance < 0.35). Falling back to scrapers.`,
+          `Insufficient pgvector results (${relevantVideos.length} relevant with distance < 0.30 out of ${videos.length} found). Falling back to scrapers.`,
         );
         return await this.executeScrapers(block.id, {
           query,
@@ -83,11 +86,7 @@ export class SearcherService extends Tool {
         });
       }
 
-      this.logger.log(`Returning ${videos.length} videos from pgvector.`);
-
-      const relevantVideos = videos.filter(
-        (video) => (video.distance ?? 1) < 0.35,
-      );
+      this.logger.log(`Returning ${relevantVideos.length} relevant videos from pgvector.`);
 
       return {
         tool_use_id: block.id,

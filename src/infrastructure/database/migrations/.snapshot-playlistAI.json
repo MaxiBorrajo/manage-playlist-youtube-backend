@@ -524,6 +524,17 @@
           "type": "fulltext"
         },
         {
+          "keyName": "message_content_role_unique",
+          "columnNames": [
+            "content",
+            "role"
+          ],
+          "composite": true,
+          "constraint": true,
+          "primary": false,
+          "unique": true
+        },
+        {
           "keyName": "message_pkey",
           "columnNames": [
             "id"

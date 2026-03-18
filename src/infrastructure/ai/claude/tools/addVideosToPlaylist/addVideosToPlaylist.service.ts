@@ -7,8 +7,11 @@ import { PlaylistRepository } from 'src/features/playlist/repositories/playlist.
 export class AddVideosToPlaylistInput {
   userId: number;
   playlistId: number;
-  videoId: number;
-  position: number;
+  items: {
+    videoId: number;
+    notes?: string;
+    position: number;
+  }[];
 }
 
 @Injectable()
@@ -24,27 +27,29 @@ export class AddVideosToPlaylistToolService extends Tool {
     block: Anthropic.Messages.ToolUseBlock,
     ...args: any[]
   ): Promise<Anthropic.Messages.ToolResultBlockParam> {
-    const { userId, playlistId, videoId, position } =
-      block.input as AddVideosToPlaylistInput;
+    const { userId, playlistId, items } = block.input as AddVideosToPlaylistInput;
 
     const playlist = await this.playlistRepository.findOneOrFail({
       id: playlistId,
       author: userId,
     });
 
-    const playlistItem = this.playlistItemRepository.create({
-      playlist,
-      video: videoId,
-      position,
+    const playlistItems = items.map((item) => {
+      return this.playlistItemRepository.create({
+        playlist,
+        video: item.videoId,
+        position: item.position,
+        notes: item.notes,
+      });
     });
 
-    await this.playlistItemRepository.save(playlistItem);
+    await this.playlistItemRepository.save(playlistItems);
 
     return {
       tool_use_id: block.id,
       type: 'tool_result',
       content:
-        'Video with ID ' + videoId + ' added to playlist with ID ' + playlistId,
+        'Videos added to playlist with ID ' + playlistId,
     };
   }
 }

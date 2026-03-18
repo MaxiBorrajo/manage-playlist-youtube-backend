@@ -7,7 +7,7 @@ import { date, z } from 'zod';
 import { id } from 'zod/v4/locales';
 
 export const PlaylistResponseSchema = z.object({
-  message: z.string(),
+  message: z.string().min(1),
   metadata: z
     .object({
       videos: z
@@ -38,4 +38,6 @@ export const PlaylistResponseSchema = z.object({
 });
 
 export type PlaylistResponse = z.infer<typeof PlaylistResponseSchema>;
+
+export type PlaylistResponseWithRole = PlaylistResponse & { role: 'user' | 'assistant' };
 
