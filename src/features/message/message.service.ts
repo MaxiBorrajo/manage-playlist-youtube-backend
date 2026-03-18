@@ -28,10 +28,12 @@ export class MessageService {
     const previousVideoIds: number[] =
       this.extractVideoIdsFromMessages(messagesOfChat);
 
-    const { message, metadata } = await this.claudeService.generateResponse(
+    const userContext = `[userId: ${userId}, chatId: ${chat.id}]`;
+
+    const session = await this.claudeService.generateResponse(
       {
         role: 'user',
-        content: `${sendMessageInput.prompt} ${
+        content: `${userContext} ${sendMessageInput.prompt} ${
           previousVideoIds.length > 0
             ? `Here are the video ids already in the playlist: ${previousVideoIds.join(', ')}. Please avoid suggesting these videos again.`
             : ''
@@ -39,26 +41,24 @@ export class MessageService {
       },
       messagesOfChat.map((message) => ({
         role: message.role === ChatRole.USER ? 'user' : 'assistant',
-        content: message.content,
+        content:
+          message.role === ChatRole.USER
+            ? `${userContext} ${message.content}`
+            : message.content,
       })),
     );
 
-    const userMessage = this.messageRepository.create({
-      content: sendMessageInput.prompt,
-      role: ChatRole.USER,
-      chat,
-    });
+    const messagesToCreate = session.map((message) =>
+      this.messageRepository.create({
+        content: message.message,
+        metadata: message.metadata,
+        role: message.role === 'user' ? ChatRole.USER : ChatRole.ASSISTANT,
+        chat,
+      }),
+    );
+    await this.messageRepository.save(messagesToCreate);
 
-    const assistantMessage = this.messageRepository.create({
-      content: message,
-      metadata,
-      role: ChatRole.ASSISTANT,
-      chat,
-    });
-
-    await this.messageRepository.save([userMessage, assistantMessage]);
-
-    return assistantMessage;
+    return messagesToCreate[messagesToCreate.length - 1];
   }
 
   extractVideoIdsFromMessages(

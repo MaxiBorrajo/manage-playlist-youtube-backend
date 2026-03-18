@@ -43,7 +43,7 @@ export class ClaudeService {
     getPlaylistsAssociatedWithChatTool,
     getCurrentAssociatedVideosWithChatTool,
     addVideosToPlaylistTool,
-    removeAssociatedVideosWithChatTool
+    removeAssociatedVideosWithChatTool,
   ];
 
   constructor(
@@ -54,7 +54,7 @@ export class ClaudeService {
   async generateResponse(
     newMessage: Anthropic.Messages.MessageParam,
     messages: Anthropic.Messages.MessageParam[],
-  ): Promise<PlaylistResponse> {
+  ): Promise<(PlaylistResponse & { role: string })[]> {
     //Ver de siempre poder añadir mas contexto a la conversación, y no solo el ultimo mensaje del usuario
 
     console.log(
@@ -62,114 +62,130 @@ export class ClaudeService {
       JSON.stringify([...messages, newMessage], null, 2),
     );
 
-    const msg = await this.anthropic.messages.create({
+    const session = [...messages, newMessage];
+
+    const aiResponse = await this.anthropic.messages.create({
       model: 'claude-haiku-4-5-20251001',
       system: claudeSystem,
       max_tokens: 8000,
-      messages: [...messages, newMessage],
+      messages: session,
       tools: this.tools,
       output_config: { format: zodOutputFormat(PlaylistResponseSchema) },
     });
 
-    return this.handleResponse(msg, messages);
+    return this.handleResponse(aiResponse, session);
   }
 
   async handleResponse(
-    msg: Anthropic.Messages.Message & { _request_id?: string | null },
-    messages: Anthropic.Messages.MessageParam[],
-  ): Promise<PlaylistResponse> {
-    if (msg.stop_reason === 'tool_use') {
-      return this.handleToolUse(msg, messages);
+    aiResponse: Anthropic.Messages.Message & { _request_id?: string | null },
+    session: Anthropic.Messages.MessageParam[],
+  ): Promise<PlaylistResponse[]> {
+    if (aiResponse.stop_reason === 'tool_use') {
+      return this.handleToolUse(aiResponse, session);
     }
 
     //Claude stopped because it reached the max_tokens limit specified in your request.
-    if (msg.stop_reason === 'max_tokens') {
-      return this.handleMaxTokens(msg);
+    if (aiResponse.stop_reason === 'max_tokens') {
+      return this.handleMaxTokens(aiResponse);
     }
 
     //Claude encountered one of your custom stop sequences.
-    if (msg.stop_reason === 'pause_turn') {
+    if (aiResponse.stop_reason === 'pause_turn') {
       return await this.handlePause([
-        ...messages,
+        ...session,
         {
-          role: msg.role,
-          content: msg.content,
+          role: aiResponse.role,
+          content: aiResponse.content,
         },
       ]);
     }
 
-    if (msg.stop_reason === 'refusal') {
-      return this.handleRefusal(msg);
+    if (aiResponse.stop_reason === 'refusal') {
+      return this.handleRefusal(aiResponse);
     }
 
-    if (msg.stop_reason === 'end_turn' && !msg.content) {
+    if (aiResponse.stop_reason === 'end_turn' && !aiResponse.content) {
       return this.handleEmptyResponse([
-        ...messages,
+        ...session,
         {
-          role: msg.role,
-          content: msg.content,
+          role: aiResponse.role,
+          content: aiResponse.content,
         },
       ]);
     }
 
-    if (msg.stop_reason === 'stop_sequence') {
+    if (aiResponse.stop_reason === 'stop_sequence') {
       console.warn(
-        `Claude stopped because it encountered one of your custom stop sequences. Request ID: ${msg._request_id}`,
+        `Claude stopped because it encountered one of your custom stop sequences. Request ID: ${aiResponse._request_id}`,
       );
     }
 
-    return this.handleMessageContent(msg, messages);
+    return this.handleMessageContent(aiResponse, session);
   }
 
   private async handleMessageContent(
-    msg: Anthropic.Messages.Message & { _request_id?: string | null },
-    messages: Anthropic.Messages.MessageParam[],
-  ): Promise<PlaylistResponse> {
-    const textBlock = msg.content.find((block) => block.type === 'text');
+    aiResponse: Anthropic.Messages.Message & { _request_id?: string | null },
+    session: Anthropic.Messages.MessageParam[],
+  ): Promise<PlaylistResponse[]> {
+    const textBlock = aiResponse.content.find((block) => block.type === 'text');
+    const textBlocks = session
+      .map(
+        (message) => message.content as Anthropic.Messages.ContentBlockParam[],
+      )
+      .flatMap((content) => content.filter((block) => block.type === 'text'));
 
-    let response: PlaylistResponse | { message: undefined; metadata: unknown };
+    const responses: (
+      | PlaylistResponse
+      | { message: undefined; metadata: unknown }
+    )[] = [];
 
-    if (textBlock) {
-      try {
-        response = PlaylistResponseSchema.parse(JSON.parse(textBlock.text));
-      } catch {
-        Logger.warn(
-          `Failed to parse response JSON, retrying. Raw text: ${textBlock.text.substring(0, 300)}`,
-        );
+    const allTextBlocks = [...textBlocks, ...(textBlock ? [textBlock] : [])];
+
+    for (const block of allTextBlocks) {
+      if (block) {
+        try {
+          responses.push(PlaylistResponseSchema.parse(JSON.parse(block.text)));
+        } catch {
+          Logger.warn(
+            `Failed to parse response JSON, retrying. Raw text: ${block.text.substring(0, 300)}`,
+          );
+          return await this.handleEmptyResponse([
+            ...session,
+            {
+              role: aiResponse.role,
+              content: aiResponse.content,
+            },
+          ]);
+        }
+      } else {
+        responses.push({ message: undefined, metadata: aiResponse.content });
+      }
+    }
+
+    for (const response of responses) {
+      if (response.message === undefined) {
         return await this.handleEmptyResponse([
-          ...messages,
+          ...session,
           {
-            role: msg.role,
-            content: msg.content,
+            role: aiResponse.role,
+            content: aiResponse.content,
           },
         ]);
       }
-    } else {
-      response = { message: undefined, metadata: msg.content };
     }
 
-    if (response.message === undefined) {
-      return await this.handleEmptyResponse([
-        ...messages,
-        {
-          role: msg.role,
-          content: msg.content,
-        },
-      ]);
-    }
-
-    return response;
+    return responses.map((response) => response as PlaylistResponse);
   }
 
   async handleToolUse(
-    msg: Anthropic.Messages.Message & { _request_id?: string | null },
-    messages: Anthropic.Messages.MessageParam[],
+    aiResponse: Anthropic.Messages.Message & { _request_id?: string | null },
+    session: Anthropic.Messages.MessageParam[],
   ) {
-    const toolResults = await this.executeTools(msg.content);
+    const toolResults = await this.executeTools(aiResponse.content);
 
-    messages.push({
-      role: msg.role,
-      content: msg.content,
+    session.push({
+      role: aiResponse.role,
+      content: aiResponse.content,
     });
 
     return this.generateResponse(
@@ -177,7 +193,7 @@ export class ClaudeService {
         role: 'user',
         content: toolResults,
       },
-      messages,
+      session,
     );
   }
 
@@ -191,35 +207,35 @@ export class ClaudeService {
   }
 
   handleRefusal(
-    msg: Anthropic.Messages.Message & { _request_id?: string | null },
+    aiResponse: Anthropic.Messages.Message & { _request_id?: string | null },
   ): never {
-    throw new AnthropicRefusalException(msg);
+    throw new AnthropicRefusalException(aiResponse);
   }
 
   async handlePause(
-    messages: Anthropic.Messages.MessageParam[],
+    session: Anthropic.Messages.MessageParam[],
     maxRetries = 5,
-  ): Promise<PlaylistResponse> {
-    const msg = await this.anthropic.messages.create({
+  ): Promise<PlaylistResponse[]> {
+    const aiResponse = await this.anthropic.messages.create({
       model: 'claude-haiku-4-5-20251001',
       max_tokens: 1000,
-      messages,
+      messages: session,
     });
 
-    if (msg.stop_reason !== 'pause_turn') {
-      return this.handleResponse(msg, messages);
+    if (aiResponse.stop_reason !== 'pause_turn') {
+      return this.handleResponse(aiResponse, session);
     }
 
     if (maxRetries <= 0) {
-      return this.handleMessageContent(msg, messages);
+      return this.handleMessageContent(aiResponse, session);
     }
 
     return await this.handlePause(
       [
-        ...messages,
+        ...session,
         {
-          role: msg.role,
-          content: msg.content,
+          role: aiResponse.role,
+          content: aiResponse.content,
         },
       ],
       maxRetries - 1,
@@ -227,41 +243,18 @@ export class ClaudeService {
   }
 
   handleMaxTokens(
-    msg: Anthropic.Messages.Message & { _request_id?: string | null },
+    aiResponse: Anthropic.Messages.Message & { _request_id?: string | null },
   ): Promise<never> {
-    throw new MaxTokensExceededException(msg.usage.output_tokens);
+    throw new MaxTokensExceededException(aiResponse.usage.output_tokens);
   }
 
-  async handleEmptyResponse(messages: Anthropic.Messages.MessageParam[]) {
-    const cleanMessages: Anthropic.Messages.MessageParam[] = [];
-
-    for (const msg of messages) {
-      if (typeof msg.content === 'string') {
-        cleanMessages.push(msg);
-        continue;
-      }
-
-      if (!Array.isArray(msg.content)) {
-        cleanMessages.push(msg);
-        continue;
-      }
-
-      const filteredContent = msg.content.filter(
-        (block: any) =>
-          block.type !== 'tool_use' && block.type !== 'tool_result',
-      );
-
-      if (filteredContent.length > 0) {
-        cleanMessages.push({ role: msg.role, content: filteredContent });
-      }
-    }
-
+  async handleEmptyResponse(session: Anthropic.Messages.MessageParam[]) {
     return await this.generateResponse(
       {
         role: 'user',
         content: 'Please provide a response to the previous message.',
       },
-      cleanMessages,
+      session,
     );
   }
 }

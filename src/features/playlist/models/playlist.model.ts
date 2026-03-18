@@ -43,8 +43,8 @@ export class Playlist extends BaseModel {
   author!: User;
 
     @Field((type) => Chat)
-  @ManyToOne(() => Chat, { deleteRule: 'cascade' })
-  chat!: Chat;
+  @ManyToOne(() => Chat, { deleteRule: 'cascade', nullable: true })
+  chat?: Chat;
 
   
 }
