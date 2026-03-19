@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import Anthropic from '@anthropic-ai/sdk';
 import { ConfigService } from '@nestjs/config';
 import { zodOutputFormat } from '@anthropic-ai/sdk/helpers/zod';
@@ -58,11 +58,13 @@ export class ClaudeService {
   ) {}
 
   private static readonly MAX_TOOL_ROUNDS = 10;
+  private static readonly MAX_EMPTY_RESPONSE_RETRIES = 3;
 
   async generateResponse(
     newMessage: Anthropic.Messages.MessageParam,
     messages: Anthropic.Messages.MessageParam[],
     toolRound = 0,
+    emptyResponseRetries = 0,
   ): Promise<PlaylistResponseWithRole[]> {
     console.log(
       'Messages sent to API:',
@@ -75,7 +77,12 @@ export class ClaudeService {
       this.generateMessageConfig(session),
     );
 
-    return this.handleResponse(aiResponse, session, toolRound);
+    return this.handleResponse(
+      aiResponse,
+      session,
+      toolRound,
+      emptyResponseRetries,
+    );
   }
 
   private generateMessageConfig(
@@ -95,13 +102,24 @@ export class ClaudeService {
     aiResponse: Anthropic.Messages.Message & { _request_id?: string | null },
     session: Anthropic.Messages.MessageParam[],
     toolRound = 0,
+    emptyResponseRetries = 0,
   ): Promise<PlaylistResponseWithRole[]> {
+    console.log('Claude response summary:', {
+      stop_reason: aiResponse.stop_reason,
+      content_blocks: aiResponse.content.length,
+      request_id: aiResponse._request_id,
+    });
+
     if (aiResponse.stop_reason === 'tool_use') {
       if (toolRound >= ClaudeService.MAX_TOOL_ROUNDS) {
         console.warn(
           `Max tool rounds (${ClaudeService.MAX_TOOL_ROUNDS}) reached, forcing text response`,
         );
-        return this.handleMessageContent(aiResponse, session);
+        return this.handleMessageContent(
+          aiResponse,
+          session,
+          emptyResponseRetries,
+        );
       }
       return this.handleToolUse(aiResponse, session, toolRound);
     }
@@ -126,14 +144,20 @@ export class ClaudeService {
       return this.handleRefusal(aiResponse);
     }
 
-    if (aiResponse.stop_reason === 'end_turn' && !aiResponse.content) {
-      return this.handleEmptyResponse([
-        ...session,
-        {
-          role: aiResponse.role,
-          content: aiResponse.content,
-        },
-      ]);
+    if (
+      aiResponse.stop_reason === 'end_turn' &&
+      aiResponse.content.length === 0
+    ) {
+      return this.handleEmptyResponse(
+        [
+          ...session,
+          {
+            role: aiResponse.role,
+            content: aiResponse.content,
+          },
+        ],
+        emptyResponseRetries,
+      );
     }
 
     if (aiResponse.stop_reason === 'stop_sequence') {
@@ -142,12 +166,29 @@ export class ClaudeService {
       );
     }
 
-    return this.handleMessageContent(aiResponse, session);
+    return this.handleMessageContent(aiResponse, session, emptyResponseRetries);
+  }
+
+  private mapSessionMessages(
+    session: Anthropic.Messages.MessageParam[],
+  ): PlaylistResponseWithRole[] {
+    return session
+      .filter((message) => {
+        return !Array.isArray(message.content);
+      })
+      .map((message) => {
+        return {
+          role: message.role,
+          message: message.content as string,
+          metadata: {},
+        };
+      });
   }
 
   private async handleMessageContent(
     aiResponse: Anthropic.Messages.Message & { _request_id?: string | null },
     session: Anthropic.Messages.MessageParam[],
+    emptyResponseRetries = 0,
   ): Promise<PlaylistResponseWithRole[]> {
     const textBlock = aiResponse.content.find((block) => block.type === 'text');
 
@@ -183,13 +224,16 @@ export class ClaudeService {
             rawContent: textBlock.text,
           },
         );
-        return this.handleEmptyResponse([
-          ...session,
-          {
-            role: aiResponse.role,
-            content: aiResponse.content,
-          },
-        ]);
+        return this.handleEmptyResponse(
+          [
+            ...session,
+            {
+              role: aiResponse.role,
+              content: aiResponse.content,
+            },
+          ],
+          emptyResponseRetries,
+        );
       }
 
       const newMessage = {
@@ -197,28 +241,21 @@ export class ClaudeService {
         role: 'assistant' as 'assistant' | 'user',
       };
 
-      const messages = session
-        .filter((message) => {
-          return !Array.isArray(message.content);
-        })
-        .map((message) => {
-          return {
-            role: message.role,
-            message: message.content as string,
-            metadata: {},
-          };
-        });
+      const messages = this.mapSessionMessages(session);
 
       return [...messages, newMessage];
     }
 
-    return this.handleEmptyResponse([
-      ...session,
-      {
-        role: aiResponse.role,
-        content: aiResponse.content,
-      },
-    ]);
+    return this.handleEmptyResponse(
+      [
+        ...session,
+        {
+          role: aiResponse.role,
+          content: aiResponse.content,
+        },
+      ],
+      emptyResponseRetries,
+    );
   }
 
   async handleToolUse(
@@ -233,6 +270,44 @@ export class ClaudeService {
       content: aiResponse.content,
     });
 
+    // Si se supera el máximo de rondas, forzar cierre conversacional
+    if (toolRound + 1 >= ClaudeService.MAX_TOOL_ROUNDS) {
+      console.warn(
+        'Max tool rounds reached after tool_use. Forzando cierre conversacional.',
+      );
+      return [
+        ...this.mapSessionMessages(session),
+        {
+          role: 'assistant' as const,
+          message:
+            'Listo, los cambios fueron aplicados. Si querés seguir, hacé otra consulta o pedí crear la playlist.',
+          metadata: {},
+        },
+      ];
+    }
+
+    // Si el resultado del tool es vacío o igual al anterior, forzar cierre
+    const lastUserMsg = session.filter((m) => m.role === 'user').slice(-1)[0];
+    if (
+      (Array.isArray(toolResults) && toolResults.length === 0) ||
+      (lastUserMsg &&
+        JSON.stringify(lastUserMsg.content) === JSON.stringify(toolResults))
+    ) {
+      console.warn(
+        'Tool result vacío o repetido. Forzando cierre conversacional.',
+      );
+      return [
+        ...this.mapSessionMessages(session),
+        {
+          role: 'assistant' as const,
+          message:
+            'Los cambios fueron aplicados. Si querés seguir, hacé otra consulta o pedí crear la playlist.',
+          metadata: {},
+        },
+      ];
+    }
+    // Si no, continuar el ciclo normal
+
     return this.generateResponse(
       {
         role: 'user',
@@ -240,6 +315,7 @@ export class ClaudeService {
       },
       session,
       toolRound + 1,
+      0,
     );
   }
 
@@ -292,13 +368,34 @@ export class ClaudeService {
     throw new MaxTokensExceededException(aiResponse.usage.output_tokens);
   }
 
-  async handleEmptyResponse(session: Anthropic.Messages.MessageParam[]) {
+  async handleEmptyResponse(
+    session: Anthropic.Messages.MessageParam[],
+    retries = 0,
+  ) {
+    if (retries >= ClaudeService.MAX_EMPTY_RESPONSE_RETRIES) {
+      console.warn(
+        `Max empty-response retries (${ClaudeService.MAX_EMPTY_RESPONSE_RETRIES}) reached. Returning fallback message.`,
+      );
+
+      return [
+        ...this.mapSessionMessages(session),
+        {
+          role: 'assistant' as const,
+          message:
+            'No pude generar una respuesta valida en este intento. Proba de nuevo con otra instruccion o reformulando el pedido.',
+          metadata: {},
+        },
+      ];
+    }
+
     return await this.generateResponse(
       {
         role: 'user',
         content: 'Please provide a response to the previous message.',
       },
       session,
+      0,
+      retries + 1,
     );
   }
 }

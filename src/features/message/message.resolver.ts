@@ -37,6 +37,11 @@ export class MessageResolver {
 
   @ResolveField()
   async chat(@Parent() message: Message) {
-    return message.chat
+    const chat = message.chat;
+    await Promise.all([
+      await chat.currentSelection.loadItems(),
+      await chat.playlistsCreated.loadItems(),
+    ]);
+    return chat;
   }
 }

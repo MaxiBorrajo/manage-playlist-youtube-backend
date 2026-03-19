@@ -50,7 +50,20 @@ export class MessageService {
       onConflictAction: 'ignore',
     });
 
-    return messagesToCreate[messagesToCreate.length - 1];
+    return {
+      ...messagesToCreate[messagesToCreate.length - 1],
+      metadata:
+        messagesToCreate[messagesToCreate.length - 1] &&
+        messagesToCreate[messagesToCreate.length - 1].metadata &&
+        typeof messagesToCreate[messagesToCreate.length - 1].metadata ===
+          'string'
+          ? JSON.parse(
+              messagesToCreate[
+                messagesToCreate.length - 1
+              ]!.metadata!.toString(),
+            )
+          : messagesToCreate[messagesToCreate.length - 1].metadata,
+    };
   }
 
   async getMessagesOfChat(chatId: number, userId: number) {
