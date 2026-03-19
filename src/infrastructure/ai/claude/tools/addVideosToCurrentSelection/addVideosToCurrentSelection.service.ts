@@ -33,6 +33,8 @@ export class AddVideosToCurrentSelectionToolService extends Tool {
     const chat = await this.chatRepository.findOneOrFail({
       id: chatId,
       user: userId,
+    }, {
+      populate: ['currentSelection'],
     });
 
     const videos = await Promise.all(

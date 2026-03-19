@@ -27,10 +27,15 @@ export class RemoveAssociatedVideosWithChatToolService extends Tool {
       block.input as RemoveAssociatedVideosWithChatInput;
 
     const [chat, video] = await Promise.all([
-      this.chatRepository.findOneOrFail({
-        id: chatId,
-        user: userId,
-      }),
+      this.chatRepository.findOneOrFail(
+        {
+          id: chatId,
+          user: userId,
+        },
+        {
+          populate: ['currentSelection'],
+        },
+      ),
       this.videoRepository.findOneOrFail({
         id: videoId,
       }),

@@ -89,9 +89,10 @@ export class ClaudeService {
     session: Anthropic.Messages.MessageParam[],
   ): Anthropic.Messages.MessageCreateParamsNonStreaming {
     return {
-      model: 'claude-haiku-4-5-20251001',
+      model: 'claude-opus-4-6',
       system: claudeSystem,
       max_tokens: 8000,
+      thinking: { type: 'enabled', budget_tokens: 5000 },
       messages: session,
       tools: this.tools,
       output_config: { format: zodOutputFormat(PlaylistResponseSchema) },

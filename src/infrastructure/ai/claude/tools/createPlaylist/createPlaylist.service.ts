@@ -57,7 +57,14 @@ export class CreatePlaylistToolService extends Tool {
     playlist.items.add(itemsToCreate);
     await this.playlistRepository.save(playlist);
 
-    const chat = await this.chatRepository.findOneOrFail(chatId);
+    const chat = await this.chatRepository.findOneOrFail(
+      {
+        id: chatId,
+      },
+      {
+        populate: ['playlistsCreated', 'currentSelection'],
+      },
+    );
 
     chat.playlistsCreated.add(playlist);
     chat.currentSelection.removeAll();
